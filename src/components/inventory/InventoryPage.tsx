@@ -8,6 +8,7 @@ import { AddProductModal } from './AddProductModal';
 import { AdjustStockModal } from './AdjustStockModal';
 import { RecordSaleModal } from './RecordSaleModal';
 import { LogWasteModal } from '../production/LogWasteModal';
+import { ProductLotsModal } from './ProductLotsModal';
 import {
   Search,
   Plus,
@@ -20,14 +21,14 @@ import {
   List,
   AlertTriangle,
   Clock,
-  Sparkles,
   X,
   Trash2,
+  Layers,
 } from 'lucide-react';
 import { formatCurrencyINR, getStockStatus } from '../../services/reorderEngine';
 
 export const InventoryPage: React.FC = () => {
-  const { products, suppliers } = useApp();
+  const { products, suppliers, getLotsForProduct, getExpiringLots } = useApp();
   const { currentUser } = useAuth();
   const { showToast } = useToast();
 
@@ -42,6 +43,7 @@ export const InventoryPage: React.FC = () => {
   const [adjustingProduct, setAdjustingProduct] = useState<Product | null>(null);
   const [sellingProduct, setSellingProduct] = useState<Product | null>(null);
   const [wastingProduct, setWastingProduct] = useState<Product | null>(null);
+  const [lotInspectingProduct, setLotInspectingProduct] = useState<Product | null>(null);
 
   const categories = useMemo(() => {
     return Array.from(new Set(products.map((p) => p.category)));
@@ -63,21 +65,30 @@ export const InventoryPage: React.FC = () => {
     return counts;
   }, [products]);
 
+  const expiringLotsList = useMemo(() => getExpiringLots(7), [getExpiringLots]);
+
   const filteredProducts = useMemo(() => {
     return products.filter((p) => {
       const matchesSearch =
         p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         p.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (p.barcode && p.barcode.toLowerCase().includes(searchTerm.toLowerCase())) ||
         (p.description && p.description.toLowerCase().includes(searchTerm.toLowerCase()));
 
       const matchesCategory = selectedCategory === 'all' || p.category === selectedCategory;
-      const { status } = getStockStatus(p.current_stock, p.minimum_required);
-      const matchesStatus = selectedStatus === 'all' || status === selectedStatus;
       const matchesSupplier = selectedSupplier === 'all' || p.supplier_id === selectedSupplier;
+
+      let matchesStatus = true;
+      if (selectedStatus === 'expiring') {
+        matchesStatus = expiringLotsList.some((l) => l.product_id === p.id);
+      } else if (selectedStatus !== 'all') {
+        const { status } = getStockStatus(p.current_stock, p.minimum_required);
+        matchesStatus = status === selectedStatus;
+      }
 
       return matchesSearch && matchesCategory && matchesStatus && matchesSupplier;
     });
-  }, [products, searchTerm, selectedCategory, selectedStatus, selectedSupplier]);
+  }, [products, searchTerm, selectedCategory, selectedStatus, selectedSupplier, expiringLotsList]);
 
   // CSV Export (Restricted to Owner & Purchasing Staff)
   const canExportCsv = currentUser?.role === 'owner' || currentUser?.role === 'purchasing';
@@ -331,6 +342,17 @@ export const InventoryPage: React.FC = () => {
               <span className="w-2 h-2 rounded-full bg-rose-500"></span>
               <span>Critical ({statusCounts['Critical']})</span>
             </button>
+            <button
+              onClick={() => setSelectedStatus(selectedStatus === 'expiring' ? 'all' : 'expiring')}
+              className={`px-2.5 py-1 rounded-lg font-bold transition flex items-center space-x-1.5 cursor-pointer ${
+                selectedStatus === 'expiring'
+                  ? 'bg-rose-100 text-rose-900 border border-rose-400 font-extrabold shadow-2xs'
+                  : 'text-rose-700 hover:bg-rose-50'
+              }`}
+            >
+              <Clock className="w-3 h-3 text-rose-600 stroke-[2.2]" />
+              <span>Expiring Soon ({expiringLotsList.length})</span>
+            </button>
           </div>
         </div>
       </div>
@@ -369,6 +391,8 @@ export const InventoryPage: React.FC = () => {
                       ? Math.round(((product.selling_price - product.cost_price) / product.cost_price) * 100) 
                       : 0;
 
+                    const productLots = getLotsForProduct(product.id);
+
                     return (
                       <tr
                         key={product.id}
@@ -385,12 +409,17 @@ export const InventoryPage: React.FC = () => {
                                   {product.barcode}
                                 </span>
                               )}
-                              {product.expiry_date && (
-                                <span className="text-[10px] text-amber-800 font-semibold flex items-center space-x-1">
-                                  <Calendar className="w-3 h-3 text-amber-700" />
-                                  <span>Exp: {product.expiry_date}</span>
-                                </span>
-                              )}
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setLotInspectingProduct(product);
+                                }}
+                                className="inline-flex items-center space-x-1 text-[10px] text-amber-800 hover:text-amber-900 bg-amber-50 hover:bg-amber-100/80 px-1.5 py-0.5 rounded border border-amber-200/80 font-bold transition cursor-pointer"
+                                title="Inspect FIFO Lots"
+                              >
+                                <Layers className="w-3 h-3 text-amber-700" />
+                                <span>{productLots.length} {productLots.length === 1 ? 'Lot' : 'Lots'}</span>
+                              </button>
                             </div>
                           </div>
                         </td>
@@ -463,6 +492,13 @@ export const InventoryPage: React.FC = () => {
                               <span>Sale</span>
                             </button>
                             <button
+                              onClick={() => setLotInspectingProduct(product)}
+                              className="p-1.5 rounded-xl border border-slate-200/90 bg-white hover:bg-amber-50 hover:border-amber-300 hover:text-amber-800 text-slate-700 transition cursor-pointer shadow-2xs"
+                              title="Inspect Stock Lots & Expiry (FIFO)"
+                            >
+                              <Layers className="w-3.5 h-3.5 text-amber-700" />
+                            </button>
+                            <button
                               onClick={() => setAdjustingProduct(product)}
                               className="p-1.5 rounded-xl border border-slate-200/90 bg-white hover:bg-slate-100 text-slate-700 transition cursor-pointer shadow-2xs"
                               title="Audit / Adjust On-Hand Count"
@@ -497,6 +533,7 @@ export const InventoryPage: React.FC = () => {
             const marginPct = product.cost_price > 0 
               ? Math.round(((product.selling_price - product.cost_price) / product.cost_price) * 100) 
               : 0;
+            const productLots = getLotsForProduct(product.id);
 
             return (
               <div
@@ -524,12 +561,14 @@ export const InventoryPage: React.FC = () => {
                         {product.barcode}
                       </span>
                     )}
-                    {product.expiry_date && (
-                      <span className="text-[10px] text-amber-800 font-semibold flex items-center space-x-1">
-                        <Calendar className="w-3 h-3 text-amber-700" />
-                        <span>Exp: {product.expiry_date}</span>
-                      </span>
-                    )}
+                    <button
+                      onClick={() => setLotInspectingProduct(product)}
+                      className="inline-flex items-center space-x-1 text-[10px] text-amber-800 hover:text-amber-900 bg-amber-50 hover:bg-amber-100/80 px-1.5 py-0.5 rounded border border-amber-200/80 font-bold transition cursor-pointer"
+                      title="Inspect FIFO Lots"
+                    >
+                      <Layers className="w-3 h-3 text-amber-700" />
+                      <span>{productLots.length} Lots</span>
+                    </button>
                   </div>
 
                   {product.description && (
@@ -577,6 +616,13 @@ export const InventoryPage: React.FC = () => {
                       + Sale
                     </button>
                     <button
+                      onClick={() => setLotInspectingProduct(product)}
+                      className="p-1 border border-slate-200 hover:bg-amber-50 text-slate-700 hover:text-amber-800 rounded-lg transition cursor-pointer"
+                      title="Inspect Stock Lots & Expiry"
+                    >
+                      <Layers className="w-3.5 h-3.5 text-amber-700" />
+                    </button>
+                    <button
                       onClick={() => setAdjustingProduct(product)}
                       className="p-1 border border-slate-200 hover:bg-slate-100 text-slate-700 rounded-lg transition cursor-pointer"
                       title="Adjust Stock"
@@ -616,6 +662,12 @@ export const InventoryPage: React.FC = () => {
         <LogWasteModal
           preselectedProduct={wastingProduct}
           onClose={() => setWastingProduct(null)}
+        />
+      )}
+      {lotInspectingProduct && (
+        <ProductLotsModal
+          product={lotInspectingProduct}
+          onClose={() => setLotInspectingProduct(null)}
         />
       )}
     </div>

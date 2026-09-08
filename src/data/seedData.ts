@@ -1,4 +1,4 @@
-import { Product, Supplier, SalesRecord, StockoutEvent, Alert, PurchaseOrder, Recipe, WasteLog } from '../types';
+import { Product, Supplier, SalesRecord, StockoutEvent, Alert, PurchaseOrder, Recipe, WasteLog, StockLot } from '../types';
 
 export const INITIAL_SUPPLIERS: Supplier[] = [
   {
@@ -49,8 +49,11 @@ const addDays = (d: Date, days: number): Date => {
   return result;
 };
 
+const daysFromNow = (days: number): string => formatDate(addDays(now, days));
+const daysAgo = (days: number): string => formatDate(addDays(now, -days));
+
 // Date 6 days from now for chocolate chips expiry alert
-const chocoExpiryDate = formatDate(addDays(now, 6));
+const chocoExpiryDate = daysFromNow(6);
 
 export const INITIAL_PRODUCTS: Product[] = [
   {
@@ -64,6 +67,9 @@ export const INITIAL_PRODUCTS: Product[] = [
     minimum_required: 60,
     supplier_id: 'sup-sunbeam',
     barcode: 'BAR-EGGS-202',
+    is_perishable: true,
+    shelf_life_days: 14,
+    expiry_date: daysFromNow(4),
     created_at: '2026-01-01',
     description: 'Grade A brown eggs, critical for cakes, brioche, and morning pastries.',
   },
@@ -78,6 +84,9 @@ export const INITIAL_PRODUCTS: Product[] = [
     minimum_required: 80,
     supplier_id: 'sup-golden',
     barcode: 'BAR-FLOUR-101',
+    is_perishable: false,
+    shelf_life_days: 90,
+    expiry_date: daysFromNow(45),
     created_at: '2026-01-01',
     description: 'High-protein unbleached flour, foundational staple for all bakery lines.',
   },
@@ -92,6 +101,9 @@ export const INITIAL_PRODUCTS: Product[] = [
     minimum_required: 25,
     supplier_id: 'sup-creamy',
     barcode: 'BAR-BUTTER-303',
+    is_perishable: true,
+    shelf_life_days: 21,
+    expiry_date: daysFromNow(2), // Urgent: 2 days!
     created_at: '2026-01-01',
     description: '82% butterfat European-style butter for croissants, puff pastries, and cookies.',
   },
@@ -105,8 +117,10 @@ export const INITIAL_PRODUCTS: Product[] = [
     current_stock: 22,
     minimum_required: 15,
     supplier_id: 'sup-cocoa',
-    expiry_date: chocoExpiryDate, // expiring in 6 days
     barcode: 'BAR-CHOCO-404',
+    is_perishable: true,
+    shelf_life_days: 90,
+    expiry_date: chocoExpiryDate, // expiring in 6 days
     created_at: '2026-01-01',
     description: 'Single-origin dark chocolate chips for muffins, ganache, and cookies.',
   },
@@ -121,6 +135,9 @@ export const INITIAL_PRODUCTS: Product[] = [
     minimum_required: 50,
     supplier_id: 'sup-golden',
     barcode: 'BAR-SUGAR-505',
+    is_perishable: false,
+    shelf_life_days: 365,
+    expiry_date: daysFromNow(180),
     created_at: '2026-01-01',
     description: 'Pure cane sugar with uniform granule size for sponges and syrups.',
   },
@@ -135,8 +152,11 @@ export const INITIAL_PRODUCTS: Product[] = [
     minimum_required: 30,
     supplier_id: 'sup-creamy',
     barcode: 'BAR-MILK-606',
+    is_perishable: true,
+    shelf_life_days: 5,
+    expiry_date: daysFromNow(2), // Urgent: 2 days!
     created_at: '2026-01-01',
-    description: 'Fresh dairy milk delivered daily, shelf life 3 days.',
+    description: 'Fresh dairy milk delivered daily, shelf life 3-5 days.',
   },
   {
     id: 'prod-vanilla',
@@ -149,6 +169,9 @@ export const INITIAL_PRODUCTS: Product[] = [
     minimum_required: 4,
     supplier_id: 'sup-cocoa',
     barcode: 'BAR-VANILLA-707',
+    is_perishable: false,
+    shelf_life_days: 365,
+    expiry_date: daysFromNow(300),
     created_at: '2026-01-01',
     description: 'Double-fold pure natural vanilla extract for signature custards and cakes.',
   },
@@ -163,8 +186,183 @@ export const INITIAL_PRODUCTS: Product[] = [
     minimum_required: 10,
     supplier_id: 'sup-golden',
     barcode: 'BAR-BAKING-808',
+    is_perishable: false,
+    shelf_life_days: 180,
+    expiry_date: daysFromNow(150),
     created_at: '2026-01-01',
     description: 'Aluminum-free leavening agent for muffins, scones, and quick breads.',
+  },
+];
+
+export const INITIAL_STOCK_LOTS: StockLot[] = [
+  // 1. Butter (18 kg total = 6 kg urgent + 12 kg fresh)
+  {
+    id: 'lot-butter-1',
+    product_id: 'prod-butter',
+    lot_number: 'LOT-BTR-2601',
+    quantity: 6,
+    initial_quantity: 10,
+    received_date: daysAgo(10),
+    expiry_date: daysFromNow(2),
+    status: 'expiring_soon',
+    notes: '82% butterfat European block (prioritize for laminating)',
+  },
+  {
+    id: 'lot-butter-2',
+    product_id: 'prod-butter',
+    lot_number: 'LOT-BTR-2602',
+    quantity: 12,
+    initial_quantity: 12,
+    received_date: daysAgo(2),
+    expiry_date: daysFromNow(18),
+    status: 'active',
+    notes: 'Fresh dairy crate from Creamy Valley',
+  },
+
+  // 2. Milk (15 L total = 5 L urgent + 10 L active)
+  {
+    id: 'lot-milk-1',
+    product_id: 'prod-milk',
+    lot_number: 'LOT-MLK-2601',
+    quantity: 5,
+    initial_quantity: 10,
+    received_date: daysAgo(3),
+    expiry_date: daysFromNow(2),
+    status: 'expiring_soon',
+    notes: 'Pasteurized whole milk crate #1',
+  },
+  {
+    id: 'lot-milk-2',
+    product_id: 'prod-milk',
+    lot_number: 'LOT-MLK-2602',
+    quantity: 10,
+    initial_quantity: 10,
+    received_date: daysAgo(1),
+    expiry_date: daysFromNow(5),
+    status: 'active',
+    notes: 'Morning dairy delivery',
+  },
+
+  // 3. Eggs (24 pcs total = 12 pcs soon + 12 pcs active)
+  {
+    id: 'lot-eggs-1',
+    product_id: 'prod-eggs',
+    lot_number: 'LOT-EGG-2601',
+    quantity: 12,
+    initial_quantity: 30,
+    received_date: daysAgo(8),
+    expiry_date: daysFromNow(4),
+    status: 'active',
+    notes: 'Grade A Brown Farm eggs tray 1',
+  },
+  {
+    id: 'lot-eggs-2',
+    product_id: 'prod-eggs',
+    lot_number: 'LOT-EGG-2602',
+    quantity: 12,
+    initial_quantity: 12,
+    received_date: daysAgo(2),
+    expiry_date: daysFromNow(12),
+    status: 'active',
+    notes: 'Grade A Brown Farm eggs tray 2',
+  },
+
+  // 4. Chocolate Chips (22 kg total = 6 kg expiring soon + 16 kg active)
+  {
+    id: 'lot-choco-1',
+    product_id: 'prod-choco',
+    lot_number: 'LOT-CHC-2601',
+    quantity: 6,
+    initial_quantity: 10,
+    received_date: daysAgo(20),
+    expiry_date: chocoExpiryDate,
+    status: 'expiring_soon',
+    notes: 'Dark Couverture 70% drops (expiring soon alert)',
+  },
+  {
+    id: 'lot-choco-2',
+    product_id: 'prod-choco',
+    lot_number: 'LOT-CHC-2602',
+    quantity: 16,
+    initial_quantity: 16,
+    received_date: daysAgo(5),
+    expiry_date: daysFromNow(75),
+    status: 'active',
+    notes: 'Imported couverture sack',
+  },
+
+  // 5. Flour (65 kg total = 25 kg + 40 kg)
+  {
+    id: 'lot-flour-1',
+    product_id: 'prod-flour',
+    lot_number: 'LOT-FLR-2601',
+    quantity: 25,
+    initial_quantity: 50,
+    received_date: daysAgo(20),
+    expiry_date: daysFromNow(45),
+    status: 'active',
+    notes: 'Unbleached maida sack A',
+  },
+  {
+    id: 'lot-flour-2',
+    product_id: 'prod-flour',
+    lot_number: 'LOT-FLR-2602',
+    quantity: 40,
+    initial_quantity: 40,
+    received_date: daysAgo(5),
+    expiry_date: daysFromNow(75),
+    status: 'active',
+    notes: 'Unbleached maida sack B',
+  },
+
+  // 6. Sugar (145 kg total = 45 kg + 100 kg)
+  {
+    id: 'lot-sugar-1',
+    product_id: 'prod-sugar',
+    lot_number: 'LOT-SGR-2601',
+    quantity: 45,
+    initial_quantity: 50,
+    received_date: daysAgo(30),
+    expiry_date: daysFromNow(180),
+    status: 'active',
+    notes: 'Fine granulated sack',
+  },
+  {
+    id: 'lot-sugar-2',
+    product_id: 'prod-sugar',
+    lot_number: 'LOT-SGR-2602',
+    quantity: 100,
+    initial_quantity: 100,
+    received_date: daysAgo(10),
+    expiry_date: daysFromNow(240),
+    status: 'active',
+    notes: 'Bulk pallet store',
+  },
+
+  // 7. Vanilla (9 bottles total)
+  {
+    id: 'lot-vanilla-1',
+    product_id: 'prod-vanilla',
+    lot_number: 'LOT-VAN-2601',
+    quantity: 9,
+    initial_quantity: 12,
+    received_date: daysAgo(40),
+    expiry_date: daysFromNow(300),
+    status: 'active',
+    notes: 'Madagascar Bourbon 500ml amber bottles',
+  },
+
+  // 8. Baking Powder (28 tins total)
+  {
+    id: 'lot-bp-1',
+    product_id: 'prod-bakingpowder',
+    lot_number: 'LOT-BKP-2601',
+    quantity: 28,
+    initial_quantity: 30,
+    received_date: daysAgo(15),
+    expiry_date: daysFromNow(150),
+    status: 'active',
+    notes: 'Double-acting 500g tin carton',
   },
 ];
 

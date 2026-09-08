@@ -61,6 +61,11 @@ class SoundManager {
     } catch {}
   }
 
+  // Click tactile feedback
+  playClick() {
+    this.playToggleClick();
+  }
+
   // Soft click/toggle feedback
   playToggleClick() {
     try {

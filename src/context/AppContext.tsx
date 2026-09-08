@@ -14,6 +14,7 @@ import {
   WasteLog,
   WasteReason,
   SurgeModifiers,
+  StockLot,
 } from '../types';
 import {
   INITIAL_PRODUCTS,
@@ -23,6 +24,7 @@ import {
   INITIAL_PURCHASE_ORDERS,
   INITIAL_RECIPES,
   INITIAL_WASTE_LOGS,
+  INITIAL_STOCK_LOTS,
   generateSeedSales,
 } from '../data/seedData';
 import {
@@ -52,6 +54,7 @@ interface AppContextType {
   purchaseOrders: PurchaseOrder[];
   recipes: Recipe[];
   wasteLogs: WasteLog[];
+  stockLots: StockLot[];
   surgeModifiers: SurgeModifiers;
   surgeMultiplier: number;
   activeTab: ActiveTab;
@@ -64,9 +67,12 @@ interface AppContextType {
   addProduct: (product: Omit<Product, 'id' | 'created_at'>) => void;
   updateStock: (productId: string, newStock: number, reason?: string) => void;
   recordSale: (productId: string, unitsSold: number) => { success: boolean; error?: string };
-  produceBatch: (recipeId: string, batchCount: number) => { success: boolean; shortages?: string[] };
-  logWaste: (productId: string, quantity: number, reason: WasteReason) => { success: boolean; error?: string };
-  receiveStock: (productId: string, quantity: number, poId?: string) => void;
+  produceBatch: (recipeId: string, batchCount: number) => { success: boolean; shortages?: string[]; fifoDetails?: string[] };
+  logWaste: (productId: string, quantity: number, reason: WasteReason, lotId?: string) => { success: boolean; error?: string };
+  receiveStock: (productId: string, quantity: number, poId?: string, lotNumber?: string, expiryDate?: string) => void;
+  getLotsForProduct: (productId: string) => StockLot[];
+  getExpiringLots: (withinDays?: number) => (StockLot & { product?: Product; daysUntilExpiry: number })[];
+  addStockLot: (lotData: Omit<StockLot, 'id' | 'status'>) => void;
   setSurgeModifiers: React.Dispatch<React.SetStateAction<SurgeModifiers>>;
   resolveAlert: (alertId: string) => void;
   createPurchaseOrder: (poData: {
@@ -92,6 +98,7 @@ const STORAGE_KEYS = {
   FINANCIAL: 'smartstock_financial_v3',
   RECIPES: 'smartstock_recipes_v3',
   WASTE_LOGS: 'smartstock_waste_v3',
+  LOTS: 'smartstock_lots_v4',
 };
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -186,6 +193,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return saved ? JSON.parse(saved) : INITIAL_WASTE_LOGS;
   });
 
+  const [stockLots, setStockLots] = useState<StockLot[]>(() => {
+    const saved = localStorage.getItem(STORAGE_KEYS.LOTS);
+    return saved ? JSON.parse(saved) : INITIAL_STOCK_LOTS;
+  });
+
   const [surgeModifiers, setSurgeModifiers] = useState<SurgeModifiers>({
     rainyWeather: false,
     weekendRush: false,
@@ -236,6 +248,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.WASTE_LOGS, JSON.stringify(wasteLogs));
   }, [wasteLogs]);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.LOTS, JSON.stringify(stockLots));
+  }, [stockLots]);
 
   // Synchronize alerts with dynamic evaluator whenever products or sales change
   useEffect(() => {
@@ -446,7 +462,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return newPO;
   };
 
-  const produceBatch = (recipeId: string, batchCount: number): { success: boolean; shortages?: string[] } => {
+  const produceBatch = (
+    recipeId: string,
+    batchCount: number
+  ): { success: boolean; shortages?: string[]; fifoDetails?: string[] } => {
     const recipe = recipes.find((r) => r.id === recipeId);
     if (!recipe) {
       showToast('error', 'Recipe not found.');
@@ -505,7 +524,33 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       })
     );
 
-    // CRITICAL RECONCILIATION: write consumption records into the same rolling-window sales dataset
+    // FIFO LOT DEDUCTION ENGINE:
+    // Deduct from earliest-expiring active lots first (expiry_date ASC)
+    const fifoDetails: string[] = [];
+    setStockLots((prevLots) => {
+      const updatedLots = prevLots.map((l) => ({ ...l }));
+      for (const item of deductions) {
+        let remaining = item.needed;
+        // Sort matching active lots for this product by expiry_date ASC
+        const matchingLots = updatedLots
+          .filter((l) => l.product_id === item.product.id && l.quantity > 0)
+          .sort((a, b) => a.expiry_date.localeCompare(b.expiry_date));
+
+        for (const lot of matchingLots) {
+          if (remaining <= 0) break;
+          const take = Math.min(lot.quantity, remaining);
+          lot.quantity = parseFloat((lot.quantity - take).toFixed(2));
+          remaining = parseFloat((remaining - take).toFixed(2));
+          if (lot.quantity === 0) {
+            lot.status = 'depleted';
+          }
+          fifoDetails.push(`${item.product.name}: ${take} ${item.product.unit} from ${lot.lot_number}`);
+        }
+      }
+      return updatedLots;
+    });
+
+    // CRITICAL RECONCILIATION: write consumption records into rolling-window sales dataset
     // so the forecasting and reorder engine immediately reflects production burn rate
     const newConsumptionRecords: SalesRecord[] = deductions.map((d) => ({
       id: `consume-${Date.now()}-${d.product.id}`,
@@ -517,17 +562,27 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setSales((prev) => [...newConsumptionRecords, ...prev]);
 
     const totalYield = batchCount * recipe.yield_quantity;
+    const fifoSummary = fifoDetails.slice(0, 3).join(', ');
+
     addActivity({
       type: 'production',
       title: `Bake Completed: ${recipe.name}`,
-      description: `${currentUser?.name || 'Baker'} (${currentUser?.role || 'staff'}) baked ${batchCount} batch(es) of ${recipe.name} (${totalYield} ${recipe.yield_unit}). Raw ingredients deducted & consumption reconciled into forecasting engine.`,
+      description: `${currentUser?.name || 'Baker'} (${currentUser?.role || 'staff'}) baked ${batchCount} batch(es) of ${recipe.name} (${totalYield} ${recipe.yield_unit}). FIFO consumed oldest lots (${fifoSummary}${fifoDetails.length > 3 ? '...' : ''}).`,
     });
 
-    showToast('success', `Baked ${batchCount} batch(es) of ${recipe.name} (${totalYield} ${recipe.yield_unit}).`);
-    return { success: true };
+    showToast(
+      'success',
+      `Baked ${batchCount} batch(es) of ${recipe.name}. FIFO auto-consumed from oldest batches.`
+    );
+    return { success: true, fifoDetails };
   };
 
-  const logWaste = (productId: string, quantity: number, reason: WasteReason): { success: boolean; error?: string } => {
+  const logWaste = (
+    productId: string,
+    quantity: number,
+    reason: WasteReason,
+    lotId?: string
+  ): { success: boolean; error?: string } => {
     const product = products.find((p) => p.id === productId);
     if (!product) {
       showToast('error', 'Product not found.');
@@ -551,6 +606,27 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setProducts((prev) =>
       prev.map((p) => (p.id === productId ? { ...p, current_stock: newStock } : p))
     );
+
+    // Deduct from specified lot or oldest active lot
+    setStockLots((prevLots) => {
+      const updated = prevLots.map((l) => ({ ...l }));
+      if (lotId) {
+        const target = updated.find((l) => l.id === lotId);
+        if (target) {
+          target.quantity = Math.max(0, parseFloat((target.quantity - quantity).toFixed(2)));
+          if (target.quantity === 0) target.status = 'depleted';
+        }
+      } else {
+        const oldest = updated
+          .filter((l) => l.product_id === productId && l.quantity > 0)
+          .sort((a, b) => a.expiry_date.localeCompare(b.expiry_date))[0];
+        if (oldest) {
+          oldest.quantity = Math.max(0, parseFloat((oldest.quantity - quantity).toFixed(2)));
+          if (oldest.quantity === 0) oldest.status = 'depleted';
+        }
+      }
+      return updated;
+    });
 
     // Create waste log entry
     const newLog: WasteLog = {
@@ -591,7 +667,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return { success: true };
   };
 
-  const receiveStock = (productId: string, quantity: number, poId?: string) => {
+  const receiveStock = (
+    productId: string,
+    quantity: number,
+    poId?: string,
+    lotNumber?: string,
+    expiryDate?: string
+  ) => {
     const product = products.find((p) => p.id === productId);
     if (!product) {
       showToast('error', 'Product not found.');
@@ -603,10 +685,43 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return;
     }
 
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
+    const shelfLife = product.shelf_life_days || 14;
+    const defaultExpDate = new Date(today);
+    defaultExpDate.setDate(defaultExpDate.getDate() + shelfLife);
+    const assignedExpiry = expiryDate || defaultExpDate.toISOString().split('T')[0];
+    const assignedLotNum =
+      lotNumber ||
+      `LOT-${product.category.substring(0, 3).toUpperCase()}-${Date.now().toString().slice(-4)}`;
+
     const newStock = parseFloat((product.current_stock + quantity).toFixed(2));
     setProducts((prev) =>
-      prev.map((p) => (p.id === productId ? { ...p, current_stock: newStock } : p))
+      prev.map((p) =>
+        p.id === productId
+          ? {
+              ...p,
+              current_stock: newStock,
+              expiry_date:
+                p.expiry_date && p.expiry_date < assignedExpiry ? p.expiry_date : assignedExpiry,
+            }
+          : p
+      )
     );
+
+    // Create new StockLot
+    const newLot: StockLot = {
+      id: `lot-${Date.now()}-${Math.random().toString(36).slice(2, 5)}`,
+      product_id: productId,
+      lot_number: assignedLotNum,
+      quantity: quantity,
+      initial_quantity: quantity,
+      received_date: todayStr,
+      expiry_date: assignedExpiry,
+      status: 'active',
+      notes: poId ? `Received from PO delivery` : `Dockside scan intake`,
+    };
+    setStockLots((prev) => [newLot, ...prev]);
 
     // If PO was matched, mark it as Delivered
     if (poId) {
@@ -627,10 +742,70 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     addActivity({
       type: 'restock',
       title: `Stock Received: ${product.name}`,
-      description: `${currentUser?.name || 'Receiving Staff'} (${currentUser?.role || 'staff'}) scanned & received ${quantity} ${product.unit} of ${product.name}${poId ? ` against open purchase order.` : '.'}`,
+      description: `${currentUser?.name || 'Receiving Staff'} (${currentUser?.role || 'staff'}) received ${quantity} ${product.unit} ${product.name} (Lot: ${assignedLotNum}, exp: ${assignedExpiry}).`,
     });
 
-    showToast('success', `Received ${quantity} ${product.unit} of ${product.name}. Stock updated to ${newStock} ${product.unit}.`);
+    showToast(
+      'success',
+      `Received ${quantity} ${product.unit} of ${product.name}. Registered lot ${assignedLotNum} (Exp: ${assignedExpiry}).`
+    );
+  };
+
+  const getLotsForProduct = (productId: string): StockLot[] => {
+    return stockLots.filter((lot) => lot.product_id === productId);
+  };
+
+  const getExpiringLots = (withinDays: number = 7) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    return stockLots
+      .filter((lot) => lot.quantity > 0)
+      .map((lot) => {
+        const exp = new Date(lot.expiry_date);
+        exp.setHours(0, 0, 0, 0);
+        const diffDays = Math.ceil((exp.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+        const product = products.find((p) => p.id === lot.product_id);
+        return {
+          ...lot,
+          product,
+          daysUntilExpiry: diffDays,
+        };
+      })
+      .filter((lot) => lot.daysUntilExpiry <= withinDays)
+      .sort((a, b) => a.daysUntilExpiry - b.daysUntilExpiry);
+  };
+
+  const addStockLot = (lotData: Omit<StockLot, 'id' | 'status'>) => {
+    const newLot: StockLot = {
+      ...lotData,
+      id: `lot-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      status: 'active',
+    };
+    setStockLots((prev) => [newLot, ...prev]);
+
+    // Reconcile product current_stock
+    setProducts((prev) =>
+      prev.map((p) =>
+        p.id === lotData.product_id
+          ? {
+              ...p,
+              current_stock: parseFloat((p.current_stock + lotData.quantity).toFixed(2)),
+              expiry_date:
+                p.expiry_date && p.expiry_date < lotData.expiry_date
+                  ? p.expiry_date
+                  : lotData.expiry_date,
+            }
+          : p
+      )
+    );
+
+    addActivity({
+      type: 'restock',
+      title: `Batch Lot Registered: ${newLot.lot_number}`,
+      description: `${currentUser?.name || 'Staff'} registered new lot ${newLot.lot_number} (${newLot.quantity} units, exp: ${newLot.expiry_date}).`,
+    });
+    showToast('success', `Added lot ${newLot.lot_number} (${newLot.quantity} units).`);
   };
 
   const updateFinancialConfig = (config: Partial<FinancialImpactConfig>) => {
@@ -682,6 +857,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       avgLossPerIncident: 2000,
       incidentsAfter: 1,
     });
+    setStockLots(INITIAL_STOCK_LOTS);
+    localStorage.removeItem(STORAGE_KEYS.LOTS);
     setActivities([
       {
         id: 'act-reset',
@@ -706,6 +883,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         purchaseOrders,
         recipes,
         wasteLogs,
+        stockLots,
         surgeModifiers,
         surgeMultiplier,
         activeTab,
@@ -719,6 +897,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         produceBatch,
         logWaste,
         receiveStock,
+        getLotsForProduct,
+        getExpiringLots,
+        addStockLot,
         setSurgeModifiers,
         resolveAlert,
         createPurchaseOrder,

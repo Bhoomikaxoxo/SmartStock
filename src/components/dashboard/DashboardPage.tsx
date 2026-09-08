@@ -9,14 +9,13 @@ import {
   ShoppingCart,
   ArrowRight,
   TrendingDown,
-  Sparkles,
-  ShieldCheck,
   Clock,
 } from 'lucide-react';
 import { StatCard } from './StatCard';
 import { StockHealthDonut } from './StockHealthDonut';
 import { KpiProgress } from './KpiProgress';
 import { RecentActivityFeed } from './RecentActivityFeed';
+import { ExpiryWatchBanner } from './ExpiryWatchBanner';
 import { formatCurrencyINR, getStockStatus } from '../../services/reorderEngine';
 
 export const DashboardPage: React.FC = () => {
@@ -200,6 +199,9 @@ export const DashboardPage: React.FC = () => {
           </button>
         </div>
       )}
+
+      {/* FIFO Shelf-Life & Expiry Watch Strip */}
+      <ExpiryWatchBanner />
 
       {/* Charts & Analytics Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

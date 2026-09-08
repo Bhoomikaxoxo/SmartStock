@@ -10,10 +10,26 @@ export interface Product {
   current_stock: number;
   minimum_required: number;
   supplier_id: string;
-  expiry_date?: string; // YYYY-MM-DD
+  expiry_date?: string; // YYYY-MM-DD (nearest lot expiry)
   barcode?: string;
+  shelf_life_days?: number;
+  is_perishable?: boolean;
   created_at: string;
   description?: string;
+}
+
+export type LotStatus = 'active' | 'expiring_soon' | 'expired' | 'depleted';
+
+export interface StockLot {
+  id: string;
+  product_id: string;
+  lot_number: string;
+  quantity: number;
+  initial_quantity: number;
+  received_date: string; // YYYY-MM-DD
+  expiry_date: string;   // YYYY-MM-DD
+  status: LotStatus;
+  notes?: string;
 }
 
 export interface SalesRecord {
