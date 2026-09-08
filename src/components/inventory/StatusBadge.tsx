@@ -25,7 +25,7 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ currentStock, minimumR
 
   return (
     <span
-      className={`inline-flex items-center space-x-1.5 px-2.5 py-0.8 rounded-full text-xs font-bold border ${styleMap[color]}`}
+      className={`inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-xs font-bold border whitespace-nowrap shrink-0 leading-none ${styleMap[color]}`}
     >
       <span className={`w-1.5 h-1.5 rounded-full ${dotMap[color]}`} />
       <span>{status}</span>

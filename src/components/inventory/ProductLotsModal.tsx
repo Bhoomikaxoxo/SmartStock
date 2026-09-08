@@ -186,7 +186,7 @@ export const ProductLotsModal: React.FC<ProductLotsModalProps> = ({ product, onC
                   <th className="py-2.5 px-3">Remaining Balance</th>
                   <th className="py-2.5 px-3">Received</th>
                   <th className="py-2.5 px-3">Expiry Date</th>
-                  <th className="py-2.5 px-3 text-right">FIFO Status</th>
+                  <th className="py-2.5 px-3 text-right whitespace-nowrap">FIFO Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 bg-white">
@@ -276,9 +276,9 @@ export const ProductLotsModal: React.FC<ProductLotsModalProps> = ({ product, onC
                               </span>
                             )}
                           </td>
-                          <td className="py-2.5 px-3 text-right">
+                          <td className="py-2.5 px-3 text-right whitespace-nowrap">
                             <span
-                              className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full border ${
+                              className={`inline-flex items-center justify-center px-2.5 py-1 rounded-full text-[10px] font-extrabold border whitespace-nowrap shrink-0 leading-none ${
                                 isDepleted
                                   ? 'bg-slate-100 text-slate-500 border-slate-200'
                                   : isUrgent
@@ -288,7 +288,7 @@ export const ProductLotsModal: React.FC<ProductLotsModalProps> = ({ product, onC
                                   : 'bg-emerald-50 text-emerald-700 border-emerald-200/90'
                               }`}
                             >
-                              {isDepleted ? 'Depleted' : isUrgent ? 'Expiring Soon' : 'Healthy Shelf'}
+                              {isDepleted ? 'Depleted' : isUrgent ? 'Expiring Soon' : isWarning ? 'Use Soon' : 'Healthy Shelf'}
                             </span>
                           </td>
                         </tr>

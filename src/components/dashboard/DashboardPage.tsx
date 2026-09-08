@@ -209,43 +209,43 @@ export const DashboardPage: React.FC = () => {
         <KpiProgress />
       </div>
 
-      {/* Activity Feed & Financial Teaser */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
-          <RecentActivityFeed />
-        </div>
-
-        {/* Financial Summary Card */}
-        <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-card flex flex-col justify-between">
-          <div>
-            <div className="flex items-center space-x-2 text-slate-500 text-xs font-bold uppercase tracking-wider mb-2">
-              <TrendingDown className="w-4 h-4 text-emerald-600 stroke-[2.2]" />
-              <span>Stockout Impact Tracking</span>
-            </div>
-            <h3 className="text-lg font-black text-slate-900 tracking-tight">
-              Estimated ₹96,000 Annual Benefit
-            </h3>
-            <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
-              Eliminating avoidable weekend shortages preserves ₹8,000/month in retail bakery sales that would otherwise be lost to cancelled orders.
-            </p>
-
-            <div className="my-4 p-3.5 rounded-xl bg-slate-50/80 border border-slate-200/60 space-y-2 text-xs">
-              <div className="flex justify-between text-slate-600">
-                <span>Loss before SmartStock:</span>
-                <span className="font-extrabold text-rose-600 font-mono">₹10,000 / mo</span>
-              </div>
-              <div className="flex justify-between text-slate-600">
-                <span>With automated buffer:</span>
-                <span className="font-extrabold text-emerald-700 font-mono">₹2,000 / mo</span>
-              </div>
-              <div className="pt-2 border-t border-slate-200 flex justify-between font-bold text-slate-900">
-                <span>Net Monthly Savings:</span>
-                <span className="text-emerald-700 font-mono font-extrabold">₹8,000 / mo</span>
-              </div>
-            </div>
+      {/* Activity Feed & Financial Summary (Executive financial metrics visible only to Bakery Owner) */}
+      {currentUser?.role === 'owner' ? (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2">
+            <RecentActivityFeed />
           </div>
 
-          {currentUser?.role === 'owner' ? (
+          {/* Financial Summary Card */}
+          <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-card flex flex-col justify-between">
+            <div>
+              <div className="flex items-center space-x-2 text-slate-500 text-xs font-bold uppercase tracking-wider mb-2">
+                <TrendingDown className="w-4 h-4 text-emerald-600 stroke-[2.2]" />
+                <span>Stockout Impact Tracking</span>
+              </div>
+              <h3 className="text-lg font-black text-slate-900 tracking-tight">
+                Estimated ₹96,000 Annual Benefit
+              </h3>
+              <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
+                Eliminating avoidable weekend shortages preserves ₹8,000/month in retail bakery sales that would otherwise be lost to cancelled orders.
+              </p>
+
+              <div className="my-4 p-3.5 rounded-xl bg-slate-50/80 border border-slate-200/60 space-y-2 text-xs">
+                <div className="flex justify-between text-slate-600">
+                  <span>Loss before SmartStock:</span>
+                  <span className="font-extrabold text-rose-600 font-mono">₹10,000 / mo</span>
+                </div>
+                <div className="flex justify-between text-slate-600">
+                  <span>With automated buffer:</span>
+                  <span className="font-extrabold text-emerald-700 font-mono">₹2,000 / mo</span>
+                </div>
+                <div className="pt-2 border-t border-slate-200 flex justify-between font-bold text-slate-900">
+                  <span>Net Monthly Savings:</span>
+                  <span className="text-emerald-700 font-mono font-extrabold">₹8,000 / mo</span>
+                </div>
+              </div>
+            </div>
+
             <button
               onClick={() => setActiveTab('impact')}
               className="w-full py-2.5 px-3 rounded-xl border border-slate-300/80 hover:bg-slate-50 font-bold text-xs text-slate-800 transition flex items-center justify-center space-x-1.5 cursor-pointer shadow-2xs"
@@ -253,13 +253,13 @@ export const DashboardPage: React.FC = () => {
               <span>Open Impact Calculator</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
-          ) : (
-            <p className="text-[11px] text-slate-400 italic text-center py-2">
-              Confidential financial models restricted to Bakery Owner
-            </p>
-          )}
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="w-full">
+          <RecentActivityFeed />
+        </div>
+      )}
     </div>
   );
 };

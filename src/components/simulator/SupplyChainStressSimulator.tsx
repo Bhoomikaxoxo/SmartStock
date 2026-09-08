@@ -10,7 +10,6 @@ import {
   Clock,
   DollarSign,
   Zap,
-  Lock,
 } from 'lucide-react';
 import { formatCurrencyINR, computeReorderRecommendation, BUFFER_DAYS_DEFAULT } from '../../services/reorderEngine';
 
@@ -85,17 +84,7 @@ export const SupplyChainStressSimulator: React.FC = () => {
   };
 
   if (!isOwner) {
-    return (
-      <div className="glass-card rounded-2xl border border-slate-200 p-8 text-center space-y-3">
-        <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-500 flex items-center justify-center mx-auto">
-          <Lock className="w-6 h-6" />
-        </div>
-        <h3 className="text-base font-black text-slate-900">Restricted Executive Tool</h3>
-        <p className="text-xs text-slate-500 max-w-md mx-auto">
-          Supply Chain Stress Test Simulation is restricted to Business Owners. Floor and Purchasing roles do not have authorization to view executive capital impact models.
-        </p>
-      </div>
-    );
+    return null;
   }
 
   return (

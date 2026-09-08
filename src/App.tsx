@@ -14,7 +14,7 @@ import { AlertsPage } from './components/alerts/AlertsPage';
 import { ImpactPage } from './components/impact/ImpactPage';
 import { SettingsPage } from './components/settings/SettingsPage';
 import { ProductionPage } from './components/production/ProductionPage';
-import { Lock, ArrowLeft } from 'lucide-react';
+import { canAccessTab } from './components/layout/Navigation';
 
 const MainLayout: React.FC = () => {
   const { activeTab, setActiveTab } = useApp();
@@ -22,8 +22,19 @@ const MainLayout: React.FC = () => {
 
   const userRole = currentUser?.role || 'staff';
 
-  // Permission guard
+  // Automatically ensure active tab is allowed for current role, otherwise silently fallback to dashboard
+  React.useEffect(() => {
+    if (!canAccessTab(activeTab, userRole)) {
+      setActiveTab('dashboard');
+    }
+  }, [activeTab, userRole, setActiveTab]);
+
+  // Clean content rendering without showing lock screens to lower access tiers
   const renderContent = () => {
+    if (!canAccessTab(activeTab, userRole)) {
+      return <DashboardPage />;
+    }
+
     switch (activeTab) {
       case 'dashboard':
         return <DashboardPage />;
@@ -32,72 +43,12 @@ const MainLayout: React.FC = () => {
       case 'production':
         return <ProductionPage />;
       case 'analytics':
-        if (userRole === 'staff') {
-          return (
-            <div className="glass-card rounded-3xl p-10 text-center border border-slate-200/80 shadow-card max-w-md mx-auto my-16 animate-scale-in">
-              <div className="w-12 h-12 bg-amber-50 text-amber-800 rounded-2xl flex items-center justify-center mx-auto mb-3.5 border border-amber-200/80">
-                <Lock className="w-6 h-6 stroke-[2]" />
-              </div>
-              <h2 className="text-base font-black text-slate-900 tracking-tight">Access Restricted</h2>
-              <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                Demand Forecasting and automated reorders are reserved for Purchasing Staff and Bakery Owners.
-              </p>
-              <button
-                onClick={() => setActiveTab('inventory')}
-                className="mt-5 px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl transition shadow-sm cursor-pointer inline-flex items-center space-x-1.5"
-              >
-                <ArrowLeft className="w-3.5 h-3.5" />
-                <span>Return to Inventory Catalog</span>
-              </button>
-            </div>
-          );
-        }
         return <AnalyticsPage />;
       case 'alerts':
         return <AlertsPage />;
       case 'impact':
-        if (userRole !== 'owner') {
-          return (
-            <div className="glass-card rounded-3xl p-10 text-center border border-slate-200/80 shadow-card max-w-md mx-auto my-16 animate-scale-in">
-              <div className="w-12 h-12 bg-amber-50 text-amber-800 rounded-2xl flex items-center justify-center mx-auto mb-3.5 border border-amber-200/80">
-                <Lock className="w-6 h-6 stroke-[2]" />
-              </div>
-              <h2 className="text-base font-black text-slate-900 tracking-tight">Owner Access Required</h2>
-              <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                Financial impact calculation and margin metrics are confidential to business owners.
-              </p>
-              <button
-                onClick={() => setActiveTab('inventory')}
-                className="mt-5 px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl transition shadow-sm cursor-pointer inline-flex items-center space-x-1.5"
-              >
-                <ArrowLeft className="w-3.5 h-3.5" />
-                <span>Return to Inventory Catalog</span>
-              </button>
-            </div>
-          );
-        }
         return <ImpactPage />;
       case 'settings':
-        if (userRole !== 'owner') {
-          return (
-            <div className="glass-card rounded-3xl p-10 text-center border border-slate-200/80 shadow-card max-w-md mx-auto my-16 animate-scale-in">
-              <div className="w-12 h-12 bg-amber-50 text-amber-800 rounded-2xl flex items-center justify-center mx-auto mb-3.5 border border-amber-200/80">
-                <Lock className="w-6 h-6 stroke-[2]" />
-              </div>
-              <h2 className="text-base font-black text-slate-900 tracking-tight">Owner Access Required</h2>
-              <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                System administration and staging controls are restricted to bakery owners.
-              </p>
-              <button
-                onClick={() => setActiveTab('inventory')}
-                className="mt-5 px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl transition shadow-sm cursor-pointer inline-flex items-center space-x-1.5"
-              >
-                <ArrowLeft className="w-3.5 h-3.5" />
-                <span>Return to Inventory Catalog</span>
-              </button>
-            </div>
-          );
-        }
         return <SettingsPage />;
       default:
         return <DashboardPage />;

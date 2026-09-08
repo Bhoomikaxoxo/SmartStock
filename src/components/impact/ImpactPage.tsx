@@ -17,7 +17,6 @@ import {
   Calculator,
   RotateCcw,
   CheckCircle2,
-  Lock,
 } from 'lucide-react';
 import { formatCurrencyINR } from '../../services/reorderEngine';
 
@@ -38,19 +37,9 @@ export const ImpactPage: React.FC = () => {
   const annualSaasCost = 999 * 12; // ₹11,988
   const roiMultiplier = annualSavings > 0 ? (annualSavings / annualSaasCost).toFixed(1) : '0';
 
-  // Role Gate
+  // Role Gate - silently return null if not owner
   if (currentUser?.role !== 'owner') {
-    return (
-      <div className="bg-white rounded-3xl p-12 text-center border border-slate-200/90 shadow-card max-w-lg mx-auto my-12">
-        <div className="w-12 h-12 bg-amber-50 text-amber-800 rounded-2xl flex items-center justify-center mx-auto mb-3.5 border border-amber-200/80">
-          <Lock className="w-6 h-6" />
-        </div>
-        <h2 className="text-lg font-black text-slate-900 tracking-tight">Owner Access Required</h2>
-        <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
-          The Financial Impact & Savings Calculator contains confidential revenue and margin data. Only bakery owners can access this module.
-        </p>
-      </div>
-    );
+    return null;
   }
 
   const comparisonData = [
