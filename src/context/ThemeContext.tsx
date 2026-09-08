@@ -55,28 +55,28 @@ const LIGHT_TOKENS: ThemeTokens = {
 };
 
 const DARK_TOKENS: ThemeTokens = {
-  bgBase: '#1C1712',
-  bgSurface: '#26201A',
-  bgElevated: '#312A22',
-  textPrimary: '#F1EAD9',
-  textSecondary: '#A99C82',
-  borderDefault: '#3A3128',
-  accent: '#E0954A',
+  bgBase: '#0B0E14',
+  bgSurface: '#131722',
+  bgElevated: '#1B2030',
+  textPrimary: '#F8FAFC',
+  textSecondary: '#94A3B8',
+  borderDefault: '#22293C',
+  accent: '#F59E0B',
   status: {
     healthy: '#34D399',
-    healthyBg: 'rgba(52, 211, 153, 0.12)',
+    healthyBg: 'rgba(52, 211, 153, 0.10)',
     low: '#FBBF24',
-    lowBg: 'rgba(251, 191, 36, 0.12)',
+    lowBg: 'rgba(245, 158, 11, 0.10)',
     critical: '#FB7185',
-    criticalBg: 'rgba(251, 113, 133, 0.12)',
+    criticalBg: 'rgba(244, 63, 94, 0.10)',
     out: '#94A3B8',
-    outBg: 'rgba(148, 163, 184, 0.12)',
+    outBg: 'rgba(148, 163, 184, 0.10)',
   },
   chart: {
-    grid: 'rgba(58, 49, 40, 0.65)',
-    axisText: '#A99C82',
-    tooltipBg: 'rgba(38, 32, 26, 0.96)',
-    tooltipBorder: '#3A3128',
+    grid: 'rgba(255, 255, 255, 0.06)',
+    axisText: '#94A3B8',
+    tooltipBg: 'rgba(19, 23, 34, 0.96)',
+    tooltipBorder: '#22293C',
   },
 };
 

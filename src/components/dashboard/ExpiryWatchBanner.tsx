@@ -93,8 +93,8 @@ export const ExpiryWatchBanner: React.FC = () => {
               key={lot.id}
               className={`p-3 rounded-xl border flex flex-col justify-between transition-all ${
                 isUrgent
-                  ? 'bg-rose-50/50 border-rose-200/70 hover:border-rose-300'
-                  : 'bg-amber-50/40 border-amber-200/60 hover:border-amber-300'
+                  ? 'bg-rose-50/50 dark:bg-rose-950/20 border-rose-200/70 dark:border-rose-900/40 hover:border-rose-300 dark:hover:border-rose-800'
+                  : 'bg-amber-50/40 dark:bg-amber-950/20 border-amber-200/60 dark:border-amber-900/40 hover:border-amber-300 dark:hover:border-amber-800'
               }`}
             >
               <div className="flex items-start justify-between gap-2">
@@ -103,17 +103,17 @@ export const ExpiryWatchBanner: React.FC = () => {
                     {lot.product?.name || 'Ingredient'}
                   </h4>
                   <div className="flex items-center space-x-1.5 text-[11px] text-slate-500 font-mono mt-0.5">
-                    <span className="font-semibold text-slate-700">{lot.lot_number}</span>
+                    <span className="font-semibold text-slate-700 dark:text-slate-300">{lot.lot_number}</span>
                     <span>•</span>
-                    <span>Bal: {lot.quantity} {lot.product?.unit}</span>
+                    <span className="text-slate-500 dark:text-slate-400">Bal: {lot.quantity} {lot.product?.unit}</span>
                   </div>
                 </div>
 
                 <span
                   className={`text-[10px] font-extrabold px-2 py-0.5 rounded-md border tabular-nums shrink-0 ${
                     isUrgent
-                      ? 'bg-rose-100/90 text-rose-800 border-rose-300/80'
-                      : 'bg-amber-100/90 text-amber-800 border-amber-300/80'
+                      ? 'bg-rose-100/90 dark:bg-rose-900/30 text-rose-800 dark:text-rose-300 border-rose-300/80 dark:border-rose-800/50'
+                      : 'bg-amber-100/90 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300 border-amber-300/80 dark:border-amber-800/50'
                   }`}
                 >
                   {lot.daysUntilExpiry <= 0
@@ -124,16 +124,16 @@ export const ExpiryWatchBanner: React.FC = () => {
                 </span>
               </div>
 
-              <div className="mt-2.5 pt-2 border-t border-slate-200/60 flex items-center justify-between">
-                <span className="text-[10px] text-slate-500 font-medium">
+              <div className="mt-2.5 pt-2 border-t border-slate-200/60 dark:border-slate-800 flex items-center justify-between">
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
                   Use-by: {lot.expiry_date}
                 </span>
                 <button
                   type="button"
                   onClick={() => handlePrioritize(lot.product?.name || '')}
-                  className="px-2 py-1 bg-white hover:bg-slate-50 text-slate-800 border border-slate-200/80 rounded-lg text-[10px] font-bold transition shadow-2xs inline-flex items-center space-x-1 cursor-pointer"
+                  className="px-2.5 py-1 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 rounded-lg text-[10px] font-bold transition shadow-2xs inline-flex items-center space-x-1 cursor-pointer"
                 >
-                  <ChefHat className="w-3 h-3 text-amber-600" />
+                  <ChefHat className="w-3 h-3 text-amber-600 dark:text-amber-400" />
                   <span>Prioritize Bake</span>
                 </button>
               </div>

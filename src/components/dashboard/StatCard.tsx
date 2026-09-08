@@ -25,25 +25,22 @@ export const StatCard: React.FC<StatCardProps> = ({
   const getCardTheme = () => {
     if (alertLevel === 'critical') {
       return {
-        border: 'border-rose-200/90 hover:border-rose-300',
+        border: 'border-slate-200/80 hover:border-rose-300 dark:hover:border-rose-700/60',
         bg: 'bg-white',
         iconBg: 'bg-rose-50 text-rose-600 border border-rose-200/60',
-        accentBar: 'bg-rose-500',
       };
     }
     if (alertLevel === 'warning') {
       return {
-        border: 'border-amber-200/90 hover:border-amber-300',
+        border: 'border-slate-200/80 hover:border-amber-300 dark:hover:border-amber-700/60',
         bg: 'bg-white',
         iconBg: 'bg-amber-50 text-amber-600 border border-amber-200/60',
-        accentBar: 'bg-amber-500',
       };
     }
     return {
-      border: 'border-slate-200/80 hover:border-slate-300',
+      border: 'border-slate-200/80 hover:border-slate-300 dark:hover:border-slate-600',
       bg: 'bg-white',
       iconBg: 'bg-slate-50 text-slate-600 border border-slate-200/60',
-      accentBar: 'bg-emerald-500',
     };
   };
 
@@ -56,8 +53,6 @@ export const StatCard: React.FC<StatCardProps> = ({
         onClick ? 'cursor-pointer group' : ''
       }`}
     >
-      {/* Top micro accent bar */}
-      <div className={`absolute top-0 left-0 right-0 h-1 ${theme.accentBar}`} />
 
       <div className="flex items-start justify-between">
         <div className="flex-1 pr-2">

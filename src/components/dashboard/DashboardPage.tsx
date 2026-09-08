@@ -96,23 +96,23 @@ export const DashboardPage: React.FC = () => {
 
       {/* Critical Shortage Notification Strip (Only shown if critical stock exists) */}
       {criticalAlerts.length > 0 && (
-        <div className="bg-rose-50/90 border border-rose-200/90 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-2xs">
+        <div className="bg-rose-50/80 dark:bg-rose-950/25 border border-rose-200/90 dark:border-rose-900/40 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-2xs">
           <div className="flex items-start sm:items-center space-x-3">
-            <div className="p-2 bg-rose-100 text-rose-700 rounded-xl shrink-0 mt-0.5 sm:mt-0 border border-rose-200">
+            <div className="p-2 bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 rounded-xl shrink-0 mt-0.5 sm:mt-0 border border-rose-200 dark:border-rose-800/40">
               <AlertTriangle className="w-4 h-4" />
             </div>
             <div>
-              <span className="font-extrabold text-rose-900 block sm:inline mr-2 uppercase tracking-wide text-[11px]">
+              <span className="font-extrabold text-rose-900 dark:text-rose-200 block sm:inline mr-2 uppercase tracking-wide text-[11px]">
                 Critical Inventory Shortage:
               </span>
-              <span className="text-rose-800 font-medium">
+              <span className="text-rose-800 dark:text-rose-300 font-medium">
                 {criticalAlerts[0]?.message}
               </span>
             </div>
           </div>
           <button
             onClick={() => setActiveTab('alerts')}
-            className="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl transition self-start sm:self-center shrink-0 cursor-pointer shadow-2xs"
+            className="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 dark:bg-rose-700 dark:hover:bg-rose-600 text-white font-bold text-xs rounded-xl transition self-start sm:self-center shrink-0 cursor-pointer shadow-2xs"
           >
             Review Alerts ({criticalAlerts.length})
           </button>
@@ -174,16 +174,16 @@ export const DashboardPage: React.FC = () => {
 
       {/* Urgent Reorder Trigger Strip */}
       {urgentReorders.length > 0 && (
-        <div className="bg-amber-50/80 border border-amber-200/90 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-2xs">
+        <div className="bg-amber-50/80 dark:bg-amber-950/25 border border-amber-200/90 dark:border-amber-900/40 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-2xs">
           <div className="flex items-start sm:items-center space-x-3">
-            <div className="p-2 bg-amber-100 text-amber-800 rounded-xl shrink-0 border border-amber-200">
+            <div className="p-2 bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300 rounded-xl shrink-0 border border-amber-200 dark:border-amber-800/40">
               <ShoppingCart className="w-4 h-4" />
             </div>
             <div>
-              <span className="font-bold text-amber-900 mr-2 uppercase tracking-wide text-[11px]">
+              <span className="font-bold text-amber-900 dark:text-amber-200 mr-2 uppercase tracking-wide text-[11px]">
                 Reorder Trigger Active:
               </span>
-              <span className="text-amber-800 font-medium">
+              <span className="text-amber-800 dark:text-amber-300 font-medium">
                 {urgentReorders.length === 1
                   ? `Order ${urgentReorders[0].recommended_quantity} ${urgentReorders[0].unit} of ${urgentReorders[0].product_name} within ${urgentReorders[0].days_until_stockout} days to avoid stockout.`
                   : `${urgentReorders.length} items have days-until-stockout ≤ vendor lead time.`}
@@ -192,7 +192,7 @@ export const DashboardPage: React.FC = () => {
           </div>
           <button
             onClick={() => setActiveTab('analytics')}
-            className="px-3.5 py-1.5 bg-amber-700 hover:bg-amber-800 text-white font-bold text-xs rounded-xl transition self-start sm:self-center shrink-0 cursor-pointer flex items-center space-x-1.5 shadow-2xs"
+            className="px-3.5 py-1.5 bg-amber-700 hover:bg-amber-800 dark:bg-amber-600 dark:hover:bg-amber-500 text-white font-bold text-xs rounded-xl transition self-start sm:self-center shrink-0 cursor-pointer flex items-center space-x-1.5 shadow-2xs"
           >
             <span>Review Reorders</span>
             <ArrowRight className="w-3.5 h-3.5" />

@@ -65,12 +65,12 @@ export const Header: React.FC = () => {
   const getRoleBadgeStyle = (role?: string) => {
     switch (role) {
       case 'owner':
-        return 'bg-amber-100/80 text-amber-800 border-amber-300/80';
+        return 'bg-amber-100/80 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border-amber-300/80 dark:border-amber-800/50';
       case 'purchasing':
-        return 'bg-purple-100/80 text-purple-800 border-purple-300/80';
+        return 'bg-purple-100/80 dark:bg-purple-950/40 text-purple-800 dark:text-purple-300 border-purple-300/80 dark:border-purple-800/50';
       case 'staff':
       default:
-        return 'bg-slate-100 text-slate-700 border-slate-200';
+        return 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-600';
     }
   };
 
@@ -108,9 +108,9 @@ export const Header: React.FC = () => {
               <div>
                 <div className="flex items-center space-x-2">
                   <span className="font-extrabold text-xl tracking-tight text-slate-900">
-                    Smart<span className="text-amber-600">Stock</span>
+                    Smart<span className="text-amber-600 dark:text-amber-500">Stock</span>
                   </span>
-                  <span className="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200/80">
+                  <span className="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/50">
                     Artisan OS
                   </span>
                 </div>
@@ -118,14 +118,14 @@ export const Header: React.FC = () => {
             </div>
 
             {/* Store Branch Live Status */}
-            <div className="hidden md:flex items-center space-x-2.5 px-3 py-1.5 rounded-xl bg-slate-100/80 border border-slate-200/60 text-xs text-slate-600">
+            <div className="hidden md:flex items-center space-x-2.5 px-3 py-1.5 rounded-xl bg-slate-100/80 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60 text-xs text-slate-600 dark:text-slate-300">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
               </span>
-              <span className="font-semibold text-slate-800">Sweet Crust Bakery</span>
-              <span className="text-slate-300">•</span>
-              <span className="text-slate-500 font-mono text-[11px]">Branch #104</span>
+              <span className="font-semibold text-slate-800 dark:text-slate-200">Sweet Crust Bakery</span>
+              <span className="text-slate-300 dark:text-slate-600">•</span>
+              <span className="text-slate-500 dark:text-slate-400 font-mono text-[11px]">Branch #104</span>
             </div>
           </div>
 
@@ -137,12 +137,12 @@ export const Header: React.FC = () => {
                 setActiveTab('inventory');
                 showToast('info', 'Navigate to Inventory to log POS transactions.');
               }}
-              className="hidden sm:inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-amber-900 bg-amber-50 hover:bg-amber-100/80 border border-amber-200/80 transition-all cursor-pointer shadow-2xs active:scale-95"
+              className="hidden sm:inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-amber-900 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/30 hover:bg-amber-100/80 dark:hover:bg-amber-900/40 border border-amber-200/80 dark:border-amber-800/50 transition-all cursor-pointer shadow-2xs active:scale-95"
               title="Shortcut: Press S"
             >
-              <PlusCircle className="w-3.5 h-3.5 text-amber-700" />
+              <PlusCircle className="w-3.5 h-3.5 text-amber-700 dark:text-amber-400" />
               <span>Log Sale</span>
-              <kbd className="hidden lg:inline-block font-mono text-[9px] px-1 py-0.2 rounded bg-amber-200/60 text-amber-900 border border-amber-300/60">
+              <kbd className="hidden lg:inline-block font-mono text-[9px] px-1 py-0.2 rounded bg-amber-200/60 dark:bg-amber-900/50 text-amber-900 dark:text-amber-300 border border-amber-300/60 dark:border-amber-700/50">
                 S
               </kbd>
             </button>
@@ -150,12 +150,12 @@ export const Header: React.FC = () => {
             {/* Quick Action: Barcode Receiving Terminal */}
             <button
               onClick={() => setIsScannerOpen(true)}
-              className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-800 bg-white hover:bg-slate-50 border border-slate-300 transition-all cursor-pointer shadow-2xs active:scale-95"
+              className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-800 dark:text-slate-200 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 transition-all cursor-pointer shadow-2xs active:scale-95"
               title="Shortcut: Press R"
             >
-              <ScanBarcode className="w-3.5 h-3.5 text-slate-700" />
+              <ScanBarcode className="w-3.5 h-3.5 text-slate-700 dark:text-slate-300" />
               <span>Receiving</span>
-              <kbd className="hidden lg:inline-block font-mono text-[9px] px-1 py-0.2 rounded bg-slate-100 text-slate-600 border border-slate-200">
+              <kbd className="hidden lg:inline-block font-mono text-[9px] px-1 py-0.2 rounded bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600">
                 R
               </kbd>
             </button>
@@ -165,16 +165,16 @@ export const Header: React.FC = () => {
               onClick={() => setActiveTab('alerts')}
               className={`relative inline-flex items-center px-3 py-1.5 rounded-xl transition cursor-pointer text-xs font-semibold ${
                 criticalCount > 0
-                  ? 'text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200/80 shadow-2xs'
+                  ? 'text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/30 hover:bg-rose-100 dark:hover:bg-rose-900/40 border border-rose-200/80 dark:border-rose-800/50 shadow-2xs'
                   : activeAlertsCount > 0
-                  ? 'text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200/80'
-                  : 'text-slate-600 hover:bg-slate-100/80 border border-slate-200/60'
+                  ? 'text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/30 hover:bg-amber-100 dark:hover:bg-amber-900/40 border border-amber-200/80 dark:border-amber-800/50'
+                  : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100/80 dark:hover:bg-slate-800 border border-slate-200/60 dark:border-slate-700'
               }`}
               title="View Active Threshold Alerts"
             >
               <AlertTriangle
                 className={`w-4 h-4 ${
-                  criticalCount > 0 ? 'text-rose-600 animate-pulse' : 'text-slate-500'
+                  criticalCount > 0 ? 'text-rose-600 dark:text-rose-400 animate-pulse' : 'text-slate-500 dark:text-slate-400'
                 }`}
               />
               <span className="ml-1.5 hidden sm:inline">Alerts</span>
@@ -195,13 +195,13 @@ export const Header: React.FC = () => {
             <div className="relative" ref={menuRef}>
               <button
                 onClick={() => setMenuOpen(!menuOpen)}
-                className="flex items-center space-x-2.5 p-1.5 pr-3 rounded-xl border border-slate-200/80 bg-white/90 hover:bg-white hover:border-slate-300 transition shadow-2xs cursor-pointer text-xs"
+                className="flex items-center space-x-2.5 p-1.5 pr-3 rounded-xl border border-slate-200/80 dark:border-slate-700 bg-white/90 dark:bg-slate-800/90 hover:bg-white dark:hover:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-600 transition shadow-2xs cursor-pointer text-xs"
               >
                 <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-slate-800 to-slate-950 text-white font-bold flex items-center justify-center text-xs shadow-2xs">
                   {currentUser?.avatarInitial || 'U'}
                 </div>
                 <div className="text-left hidden sm:block">
-                  <span className="font-bold text-slate-800 block leading-tight">
+                  <span className="font-bold text-slate-800 dark:text-slate-200 block leading-tight">
                     {currentUser?.name || 'Account'}
                   </span>
                   <span
@@ -212,7 +212,7 @@ export const Header: React.FC = () => {
                     {getRoleLabel(currentUser?.role)}
                   </span>
                 </div>
-                <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+                <ChevronDown className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
               </button>
 
               {/* Dropdown Menu */}
