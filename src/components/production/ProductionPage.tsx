@@ -27,8 +27,13 @@ export const ProductionPage: React.FC = () => {
   const [selectedRecipeForBake, setSelectedRecipeForBake] = useState<Recipe | null>(null);
   const [isWasteModalOpen, setIsWasteModalOpen] = useState(false);
   const [wastePreselectedProduct, setWastePreselectedProduct] = useState<Product | undefined>(undefined);
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
   const canViewFinancials = currentUser?.role === 'owner' || currentUser?.role === 'purchasing';
+
+  const categories = useMemo(() => {
+    return Array.from(new Set(recipes.map((r) => r.category)));
+  }, [recipes]);
 
   // Feasibility calculation for each recipe
   const recipeFeasibility = useMemo(() => {
@@ -75,6 +80,11 @@ export const ProductionPage: React.FC = () => {
       };
     });
   }, [recipes, products]);
+
+  const filteredFeasibility = useMemo(() => {
+    if (selectedCategory === 'all') return recipeFeasibility;
+    return recipeFeasibility.filter((rf) => rf.recipe.category === selectedCategory);
+  }, [recipeFeasibility, selectedCategory]);
 
   const totalReadyToBake = recipeFeasibility.filter((r) => r.isReady).length;
   const totalWasteLoss = useMemo(() => {
@@ -163,7 +173,7 @@ export const ProductionPage: React.FC = () => {
 
       {/* Recipe Catalog Grid */}
       <div>
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
           <h2 className="text-sm font-black text-slate-900 uppercase tracking-wider">
             Bakery Bill of Materials (BOM) Catalog
           </h2>
@@ -172,11 +182,42 @@ export const ProductionPage: React.FC = () => {
           </span>
         </div>
 
+        {/* Category Filter Pills */}
+        <div className="flex items-center space-x-1.5 overflow-x-auto scrollbar-none py-1 mb-4">
+          <button
+            type="button"
+            onClick={() => setSelectedCategory('all')}
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+              selectedCategory === 'all'
+                ? 'bg-slate-900 text-white shadow-2xs'
+                : 'bg-white hover:bg-slate-100 text-slate-600 border border-slate-200'
+            }`}
+          >
+            All Formulas ({recipes.length})
+          </button>
+          {categories.map((cat) => (
+            <button
+              key={cat}
+              type="button"
+              onClick={() => setSelectedCategory(cat)}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer whitespace-nowrap ${
+                selectedCategory === cat
+                  ? 'bg-slate-900 text-white shadow-2xs'
+                  : 'bg-white hover:bg-slate-100 text-slate-600 border border-slate-200'
+              }`}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {recipeFeasibility.map(({ recipe, maxBatches, isReady, shortagesForOneBatch, totalIngredientCost, batchMargin }) => (
+          {filteredFeasibility.map(({ recipe, maxBatches, isReady, shortagesForOneBatch, totalIngredientCost, batchMargin }) => (
             <div
               key={recipe.id}
-              className="glass-card rounded-2xl border border-slate-200/90 p-5 flex flex-col justify-between shadow-2xs hover:shadow-xs transition"
+              className={`glass-card rounded-2xl border border-slate-200/90 p-5 flex flex-col justify-between shadow-2xs card-hover ${
+                isReady ? 'border-l-4 border-l-emerald-600' : 'border-l-4 border-l-rose-600'
+              }`}
             >
               <div>
                 {/* Top Row: Title & Badge */}

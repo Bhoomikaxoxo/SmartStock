@@ -376,15 +376,22 @@ export const InventoryPage: React.FC = () => {
                       >
                         <td className="py-3 px-4 font-bold text-slate-900">
                           <div>
-                            <span className="text-sm font-extrabold text-slate-900 group-hover:text-amber-800 transition-colors">
+                            <span className="text-sm font-extrabold text-slate-900 group-hover:text-amber-800 transition-colors block">
                               {product.name}
                             </span>
-                            {product.expiry_date && (
-                              <span className="text-[10px] text-amber-800 font-semibold flex items-center space-x-1 mt-0.5">
-                                <Calendar className="w-3 h-3 text-amber-700" />
-                                <span>Exp: {product.expiry_date}</span>
-                              </span>
-                            )}
+                            <div className="flex items-center space-x-2 mt-0.5">
+                              {product.barcode && (
+                                <span className="inline-flex items-center font-mono text-[10px] text-slate-500 bg-slate-100 px-1.5 py-0.2 rounded border border-slate-200/80">
+                                  {product.barcode}
+                                </span>
+                              )}
+                              {product.expiry_date && (
+                                <span className="text-[10px] text-amber-800 font-semibold flex items-center space-x-1">
+                                  <Calendar className="w-3 h-3 text-amber-700" />
+                                  <span>Exp: {product.expiry_date}</span>
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </td>
 
@@ -494,7 +501,7 @@ export const InventoryPage: React.FC = () => {
             return (
               <div
                 key={product.id}
-                className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-card hover:shadow-card-hover transition-all flex flex-col justify-between"
+                className="glass-card rounded-2xl p-5 border border-slate-200/90 shadow-2xs card-hover flex flex-col justify-between"
               >
                 <div>
                   <div className="flex items-start justify-between gap-2 mb-2">
@@ -511,8 +518,22 @@ export const InventoryPage: React.FC = () => {
                     {product.name}
                   </h3>
 
+                  <div className="flex items-center space-x-2 mt-1">
+                    {product.barcode && (
+                      <span className="inline-flex items-center font-mono text-[10px] text-slate-500 bg-slate-100 px-1.5 py-0.2 rounded border border-slate-200/80">
+                        {product.barcode}
+                      </span>
+                    )}
+                    {product.expiry_date && (
+                      <span className="text-[10px] text-amber-800 font-semibold flex items-center space-x-1">
+                        <Calendar className="w-3 h-3 text-amber-700" />
+                        <span>Exp: {product.expiry_date}</span>
+                      </span>
+                    )}
+                  </div>
+
                   {product.description && (
-                    <p className="text-xs text-slate-500 mt-1 line-clamp-1">
+                    <p className="text-xs text-slate-500 mt-2 line-clamp-1">
                       {product.description}
                     </p>
                   )}

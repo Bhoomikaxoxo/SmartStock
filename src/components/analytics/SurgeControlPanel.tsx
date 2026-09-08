@@ -2,6 +2,7 @@ import React from 'react';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 import { CloudRain, TrendingUp, Sparkles, SlidersHorizontal, ShieldAlert } from 'lucide-react';
+import { sounds } from '../../utils/audio';
 
 export const SurgeControlPanel: React.FC = () => {
   const { surgeModifiers, setSurgeModifiers, surgeMultiplier } = useApp();
@@ -11,6 +12,7 @@ export const SurgeControlPanel: React.FC = () => {
 
   const toggleModifier = (key: keyof typeof surgeModifiers) => {
     if (isRestricted) return;
+    sounds.playToggleClick();
     setSurgeModifiers((prev) => ({
       ...prev,
       [key]: !prev[key],

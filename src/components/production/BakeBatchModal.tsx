@@ -3,6 +3,7 @@ import { useApp } from '../../context/AppContext';
 import { Recipe, Product } from '../../types';
 import { X, ChefHat, AlertTriangle, CheckCircle2, ShoppingCart, ArrowRight } from 'lucide-react';
 import { CreatePOModal } from '../alerts/CreatePOModal';
+import { sounds } from '../../utils/audio';
 
 interface BakeBatchModalProps {
   recipe: Recipe;
@@ -39,6 +40,7 @@ export const BakeBatchModal: React.FC<BakeBatchModalProps> = ({ recipe, onClose 
     if (hasShortage) return;
     const res = produceBatch(recipe.id, batchCount);
     if (res.success) {
+      sounds.playSuccessChime();
       onClose();
     }
   };

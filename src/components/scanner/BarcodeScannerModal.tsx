@@ -12,6 +12,7 @@ import {
   Building2,
   Plus,
 } from 'lucide-react';
+import { sounds } from '../../utils/audio';
 
 interface BarcodeScannerModalProps {
   onClose: () => void;
@@ -33,6 +34,7 @@ export const BarcodeScannerModal: React.FC<BarcodeScannerModalProps> = ({ onClos
 
   const handleScanCode = (code: string) => {
     setIsScanningAnim(true);
+    sounds.playScanBeep();
     setTimeout(() => {
       setIsScanningAnim(false);
       const match = products.find(
@@ -56,6 +58,7 @@ export const BarcodeScannerModal: React.FC<BarcodeScannerModalProps> = ({ onClos
 
   const handleReceiveStock = (qty: number, poId?: string) => {
     if (!scannedProduct || qty <= 0) return;
+    sounds.playSuccessChime();
     receiveStock(scannedProduct.id, qty, poId);
     setScannedProduct(null);
     setManualInput('');
@@ -89,17 +92,22 @@ export const BarcodeScannerModal: React.FC<BarcodeScannerModalProps> = ({ onClos
 
         <div className="mt-5 space-y-5 text-xs">
           {/* Mock Scanner Viewport / Status */}
-          <div className="relative p-5 rounded-2xl bg-slate-950 text-slate-100 border border-slate-800 text-center overflow-hidden">
+          <div className="relative p-6 rounded-2xl bg-slate-950 text-slate-100 border border-slate-800 text-center overflow-hidden shadow-inner">
+            {/* Ambient optical laser sweep */}
+            <div className="absolute inset-x-8 h-0.5 bg-gradient-to-r from-transparent via-emerald-400 to-transparent shadow-[0_0_12px_#10b981] animate-laser pointer-events-none" />
             {isScanningAnim && (
-              <div className="absolute inset-x-0 h-1 bg-emerald-500 shadow-[0_0_12px_#10b981] animate-pulse top-1/2 -translate-y-1/2" />
+              <div className="absolute inset-x-0 h-1 bg-emerald-400 shadow-[0_0_16px_#34d399] animate-pulse top-1/2 -translate-y-1/2 pointer-events-none" />
             )}
-            <div className="flex flex-col items-center justify-center py-2">
-              <ScanBarcode className={`w-12 h-12 mb-2 transition ${isScanningAnim ? 'text-emerald-400 scale-110' : 'text-slate-400'}`} />
-              <div className="font-mono text-xs font-bold tracking-wider text-slate-200">
-                {isScanningAnim ? 'DECODING OPTICAL BARCODE...' : 'SCANNING HARDWARE ACTIVE'}
+            <div className="flex flex-col items-center justify-center py-2 relative z-10">
+              <div className="relative p-3 rounded-2xl bg-slate-900/80 border border-slate-800/90 mb-2">
+                <ScanBarcode className={`w-10 h-10 transition-transform duration-200 ${isScanningAnim ? 'text-emerald-400 scale-110' : 'text-slate-300'}`} />
+              </div>
+              <div className="font-mono text-xs font-bold tracking-wider text-slate-200 flex items-center space-x-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse-dot" />
+                <span>{isScanningAnim ? 'DECODING OPTICAL BARCODE...' : 'SCANNING HARDWARE ACTIVE'}</span>
               </div>
               <div className="text-[11px] text-slate-400 mt-1">
-                Tap any seeded barcode chip below or enter code manually
+                Tap any seeded incoming raw ingredient below or enter code manually
               </div>
             </div>
           </div>

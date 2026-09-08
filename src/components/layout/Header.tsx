@@ -29,16 +29,38 @@ export const Header: React.FC = () => {
   const activeAlertsCount = alerts.filter((a) => !a.resolved).length;
   const criticalCount = alerts.filter((a) => !a.resolved && a.severity === 'critical').length;
 
-  // Close dropdown on outside click
+  // Close dropdown on outside click & register keyboard shortcuts
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
         setMenuOpen(false);
       }
     };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const activeEl = document.activeElement;
+      const isInput =
+        activeEl?.tagName === 'INPUT' ||
+        activeEl?.tagName === 'TEXTAREA' ||
+        activeEl?.tagName === 'SELECT';
+      if (isInput) return;
+
+      if ((event.key === 'r' || event.key === 'R') && !event.metaKey && !event.ctrlKey) {
+        event.preventDefault();
+        setIsScannerOpen((prev) => !prev);
+      } else if ((event.key === 's' || event.key === 'S') && !event.metaKey && !event.ctrlKey) {
+        event.preventDefault();
+        setActiveTab('inventory');
+      }
+    };
+
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [setActiveTab]);
 
   const getRoleBadgeStyle = (role?: string) => {
     switch (role) {
@@ -115,20 +137,27 @@ export const Header: React.FC = () => {
                 setActiveTab('inventory');
                 showToast('info', 'Navigate to Inventory to log POS transactions.');
               }}
-              className="hidden sm:inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-amber-900 bg-amber-100/70 hover:bg-amber-200/70 border border-amber-200/80 transition-all cursor-pointer shadow-2xs active:scale-95"
+              className="hidden sm:inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-amber-900 bg-amber-50 hover:bg-amber-100/80 border border-amber-200/80 transition-all cursor-pointer shadow-2xs active:scale-95"
+              title="Shortcut: Press S"
             >
               <PlusCircle className="w-3.5 h-3.5 text-amber-700" />
               <span>Log Sale</span>
+              <kbd className="hidden lg:inline-block font-mono text-[9px] px-1 py-0.2 rounded bg-amber-200/60 text-amber-900 border border-amber-300/60">
+                S
+              </kbd>
             </button>
 
             {/* Quick Action: Barcode Receiving Terminal */}
             <button
               onClick={() => setIsScannerOpen(true)}
-              className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-800 bg-slate-100 hover:bg-slate-200/80 border border-slate-300 transition-all cursor-pointer shadow-2xs active:scale-95"
-              title="Open Barcode Receiving Terminal"
+              className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-800 bg-white hover:bg-slate-50 border border-slate-300 transition-all cursor-pointer shadow-2xs active:scale-95"
+              title="Shortcut: Press R"
             >
               <ScanBarcode className="w-3.5 h-3.5 text-slate-700" />
               <span>Receiving</span>
+              <kbd className="hidden lg:inline-block font-mono text-[9px] px-1 py-0.2 rounded bg-slate-100 text-slate-600 border border-slate-200">
+                R
+              </kbd>
             </button>
 
             {/* Alert Indicator Pill */}

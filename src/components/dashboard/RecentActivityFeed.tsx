@@ -10,29 +10,36 @@ import {
   CheckCircle2,
   Package,
   History,
+  ChefHat,
+  Trash2,
 } from 'lucide-react';
 
 export const RecentActivityFeed: React.FC = () => {
   const { activities, stockouts, purchaseOrders, setActiveTab } = useApp();
-  const [filter, setFilter] = useState<'all' | 'reorders' | 'stockouts'>('all');
+  const [filter, setFilter] = useState<'all' | 'reorders' | 'production' | 'stockouts'>('all');
 
   const filtered = activities.filter((act) => {
     if (filter === 'reorders') return act.type === 'reorder';
+    if (filter === 'production') return act.type === 'production';
     if (filter === 'stockouts') return act.type === 'stockout';
     return true;
   });
 
   const getIcon = (type: ActivityItem['type']) => {
     switch (type) {
+      case 'production':
+        return <ChefHat className="w-4 h-4 text-emerald-600" />;
+      case 'waste':
+        return <Trash2 className="w-4 h-4 text-rose-600" />;
       case 'reorder':
         return <ShoppingCart className="w-4 h-4 text-amber-600" />;
       case 'stockout':
         return <AlertTriangle className="w-4 h-4 text-rose-600" />;
       case 'sale':
-        return <TrendingUp className="w-4 h-4 text-emerald-600" />;
+        return <TrendingUp className="w-4 h-4 text-blue-600" />;
       case 'restock':
       case 'alert_resolved':
-        return <CheckCircle2 className="w-4 h-4 text-teal-600" />;
+        return <CheckCircle2 className="w-4 h-4 text-emerald-600" />;
       default:
         return <Clock className="w-4 h-4 text-slate-400" />;
     }
@@ -86,6 +93,16 @@ export const RecentActivityFeed: React.FC = () => {
             }`}
           >
             Reorders
+          </button>
+          <button
+            onClick={() => setFilter('production')}
+            className={`px-3 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+              filter === 'production'
+                ? 'bg-white text-slate-900 shadow-2xs'
+                : 'text-slate-500 hover:text-slate-900'
+            }`}
+          >
+            Bakes
           </button>
           <button
             onClick={() => setFilter('stockouts')}
