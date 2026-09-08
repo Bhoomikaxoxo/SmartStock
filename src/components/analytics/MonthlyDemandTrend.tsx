@@ -11,6 +11,7 @@ import {
   Legend,
 } from 'recharts';
 import { Product, SalesRecord } from '../../types';
+import { useApp } from '../../context/AppContext';
 import { getMonthlyDemandTrend } from '../../services/reorderEngine';
 import { TrendingUp, Sparkles, AlertCircle, ArrowUpRight, BarChart3 } from 'lucide-react';
 
@@ -20,6 +21,7 @@ interface MonthlyDemandTrendProps {
 }
 
 export const MonthlyDemandTrend: React.FC<MonthlyDemandTrendProps> = ({ products, sales }) => {
+  const { surgeMultiplier } = useApp();
   const [selectedProductId, setSelectedProductId] = useState<string>(
     products.find((p) => p.id === 'prod-flour')?.id || products[0]?.id || ''
   );
@@ -27,7 +29,7 @@ export const MonthlyDemandTrend: React.FC<MonthlyDemandTrendProps> = ({ products
   const currentProduct = products.find((p) => p.id === selectedProductId) || products[0];
 
   const trendData = currentProduct
-    ? getMonthlyDemandTrend(currentProduct.id, sales)
+    ? getMonthlyDemandTrend(currentProduct.id, sales, surgeMultiplier)
     : {
         chartData: [],
         m1Total: 0,

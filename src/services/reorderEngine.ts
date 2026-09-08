@@ -68,10 +68,12 @@ export function computeReorderRecommendation(
   product: Product,
   sales: SalesRecord[],
   supplier?: Supplier,
-  bufferDays: number = BUFFER_DAYS_DEFAULT
+  bufferDays: number = BUFFER_DAYS_DEFAULT,
+  surgeMultiplier: number = 1.0
 ): ReorderRecommendation {
   const leadTimeDays = supplier ? supplier.lead_time_days : 3;
-  const avgDaily = getAvgDailyConsumption(product.id, sales, 30);
+  const baseAvgDaily = getAvgDailyConsumption(product.id, sales, 30);
+  const avgDaily = parseFloat((baseAvgDaily * surgeMultiplier).toFixed(2));
   const daysUntilStockout = parseFloat((product.current_stock / avgDaily).toFixed(1));
   const reorderTriggerPoint = parseFloat((avgDaily * leadTimeDays).toFixed(1));
 
@@ -95,12 +97,13 @@ export function computeReorderRecommendation(
   const recommendedByDate = orderTargetDate.toISOString().split('T')[0];
 
   let reasoning: string;
+  const surgeText = surgeMultiplier > 1 ? ` (Surge factor: ${surgeMultiplier}x applied)` : '';
   if (product.current_stock <= 0) {
-    reasoning = `OUT OF STOCK! Daily burn rate is ${avgDaily} ${product.unit}/day. Supplier lead time is ${leadTimeDays} days. Emergency restock needed immediately.`;
+    reasoning = `OUT OF STOCK! Daily burn rate is ${avgDaily} ${product.unit}/day${surgeText}. Supplier lead time is ${leadTimeDays} days. Emergency restock needed immediately.`;
   } else if (daysUntilStockout <= leadTimeDays) {
-    reasoning = `Stockout in ${daysUntilStockout} days, while supplier takes ${leadTimeDays} days to deliver. Order within ${daysToOrder} day(s) with ${bufferDays} days safety buffer.`;
+    reasoning = `Stockout in ${daysUntilStockout} days${surgeText}, while supplier takes ${leadTimeDays} days to deliver. Order within ${daysToOrder} day(s) with ${bufferDays} days safety buffer.`;
   } else {
-    reasoning = `Based on avg daily usage of ${avgDaily} ${product.unit}/day × (${leadTimeDays}d lead time + ${bufferDays}d buffer) minus current stock.`;
+    reasoning = `Based on avg daily usage of ${avgDaily} ${product.unit}/day${surgeText} × (${leadTimeDays}d lead time + ${bufferDays}d buffer) minus current stock.`;
   }
 
   const estimatedCost = Math.round(recommendedQuantity * product.cost_price);
@@ -197,7 +200,11 @@ export function getSlowMovingProducts(products: Product[], sales: SalesRecord[])
  * Computes monthly demand trends per product over past 3 months
  * plus linear trend projection for next month
  */
-export function getMonthlyDemandTrend(productId: string, sales: SalesRecord[]) {
+export function getMonthlyDemandTrend(
+  productId: string,
+  sales: SalesRecord[],
+  surgeMultiplier: number = 1.0
+) {
   const productSales = sales.filter((s) => s.product_id === productId);
   
   // Group into 3 rolling 30-day buckets: Month -3, Month -2, Month -1
@@ -246,8 +253,9 @@ export function getMonthlyDemandTrend(productId: string, sales: SalesRecord[]) {
   const slope = numerator / denominator;
   const intercept = yBar - (slope * xBar);
 
-  // Projected value for month 4
-  const projectedM4 = Math.max(0, parseFloat((slope * 4 + intercept).toFixed(1)));
+  // Projected value for month 4 with surge multiplier applied
+  const baseProjection = Math.max(0, slope * 4 + intercept);
+  const projectedM4 = parseFloat((baseProjection * surgeMultiplier).toFixed(1));
 
   // Growth rates
   const growthM1toM2 = m1Total > 0 ? (m2Total - m1Total) / m1Total : 0;

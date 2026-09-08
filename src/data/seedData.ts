@@ -1,4 +1,4 @@
-import { Product, Supplier, SalesRecord, StockoutEvent, Alert, PurchaseOrder } from '../types';
+import { Product, Supplier, SalesRecord, StockoutEvent, Alert, PurchaseOrder, Recipe, WasteLog } from '../types';
 
 export const INITIAL_SUPPLIERS: Supplier[] = [
   {
@@ -63,6 +63,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     current_stock: 24, // below minimum 60 -> CRITICAL
     minimum_required: 60,
     supplier_id: 'sup-sunbeam',
+    barcode: 'BAR-EGGS-202',
     created_at: '2026-01-01',
     description: 'Grade A brown eggs, critical for cakes, brioche, and morning pastries.',
   },
@@ -76,6 +77,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     current_stock: 65, // minimum 80 -> Reorder due
     minimum_required: 80,
     supplier_id: 'sup-golden',
+    barcode: 'BAR-FLOUR-101',
     created_at: '2026-01-01',
     description: 'High-protein unbleached flour, foundational staple for all bakery lines.',
   },
@@ -89,6 +91,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     current_stock: 18, // runs out in ~4 days (4.5kg/day)
     minimum_required: 25,
     supplier_id: 'sup-creamy',
+    barcode: 'BAR-BUTTER-303',
     created_at: '2026-01-01',
     description: '82% butterfat European-style butter for croissants, puff pastries, and cookies.',
   },
@@ -103,6 +106,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     minimum_required: 15,
     supplier_id: 'sup-cocoa',
     expiry_date: chocoExpiryDate, // expiring in 6 days
+    barcode: 'BAR-CHOCO-404',
     created_at: '2026-01-01',
     description: 'Single-origin dark chocolate chips for muffins, ganache, and cookies.',
   },
@@ -116,6 +120,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     current_stock: 145, // healthy
     minimum_required: 50,
     supplier_id: 'sup-golden',
+    barcode: 'BAR-SUGAR-505',
     created_at: '2026-01-01',
     description: 'Pure cane sugar with uniform granule size for sponges and syrups.',
   },
@@ -129,6 +134,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     current_stock: 15, // minimum 30
     minimum_required: 30,
     supplier_id: 'sup-creamy',
+    barcode: 'BAR-MILK-606',
     created_at: '2026-01-01',
     description: 'Fresh dairy milk delivered daily, shelf life 3 days.',
   },
@@ -142,6 +148,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     current_stock: 9, // slow-moving, high-margin
     minimum_required: 4,
     supplier_id: 'sup-cocoa',
+    barcode: 'BAR-VANILLA-707',
     created_at: '2026-01-01',
     description: 'Double-fold pure natural vanilla extract for signature custards and cakes.',
   },
@@ -155,8 +162,107 @@ export const INITIAL_PRODUCTS: Product[] = [
     current_stock: 28, // healthy
     minimum_required: 10,
     supplier_id: 'sup-golden',
+    barcode: 'BAR-BAKING-808',
     created_at: '2026-01-01',
     description: 'Aluminum-free leavening agent for muffins, scones, and quick breads.',
+  },
+];
+
+export const INITIAL_RECIPES: Recipe[] = [
+  {
+    id: 'rec-croissant',
+    name: 'French Butter Croissants',
+    category: 'Viennoiserie',
+    yield_quantity: 24,
+    yield_unit: 'pieces',
+    prep_time_mins: 180,
+    selling_price: 110,
+    description: 'Flaky 27-layer laminated French croissants with 82% butterfat.',
+    ingredients: [
+      { product_id: 'prod-flour', quantity: 1.5, unit: 'kg' },
+      { product_id: 'prod-butter', quantity: 0.8, unit: 'kg' },
+      { product_id: 'prod-sugar', quantity: 0.25, unit: 'kg' },
+      { product_id: 'prod-milk', quantity: 0.5, unit: 'liters' },
+      { product_id: 'prod-eggs', quantity: 4, unit: 'pieces' },
+    ],
+  },
+  {
+    id: 'rec-sourdough',
+    name: 'Artisan Country Sourdough',
+    category: 'Artisan Breads',
+    yield_quantity: 20,
+    yield_unit: 'loaves',
+    prep_time_mins: 720,
+    selling_price: 160,
+    description: 'Naturally fermented 36-hour slow cold-retarded sourdough with wild starter.',
+    ingredients: [
+      { product_id: 'prod-flour', quantity: 9.0, unit: 'kg' },
+      { product_id: 'prod-sugar', quantity: 0.2, unit: 'kg' },
+    ],
+  },
+  {
+    id: 'rec-brioche-choco',
+    name: 'Dark Chocolate Brioche Buns',
+    category: 'Sweet Breads',
+    yield_quantity: 16,
+    yield_unit: 'buns',
+    prep_time_mins: 120,
+    selling_price: 140,
+    description: 'Enriched golden brioche stuffed with 70% dark Belgian couverture drops.',
+    ingredients: [
+      { product_id: 'prod-flour', quantity: 1.2, unit: 'kg' },
+      { product_id: 'prod-butter', quantity: 0.4, unit: 'kg' },
+      { product_id: 'prod-choco', quantity: 0.5, unit: 'kg' },
+      { product_id: 'prod-eggs', quantity: 6, unit: 'pieces' },
+      { product_id: 'prod-sugar', quantity: 0.3, unit: 'kg' },
+      { product_id: 'prod-milk', quantity: 0.3, unit: 'liters' },
+    ],
+  },
+  {
+    id: 'rec-vanilla-cake',
+    name: 'Madagascar Celebration Sponge',
+    category: 'Cakes & Pastries',
+    yield_quantity: 2,
+    yield_unit: 'cakes',
+    prep_time_mins: 90,
+    selling_price: 850,
+    description: 'Three-tiered fluffy vanilla sponge with double-fold Bourbon extract.',
+    ingredients: [
+      { product_id: 'prod-flour', quantity: 0.8, unit: 'kg' },
+      { product_id: 'prod-sugar', quantity: 0.6, unit: 'kg' },
+      { product_id: 'prod-butter', quantity: 0.4, unit: 'kg' },
+      { product_id: 'prod-eggs', quantity: 8, unit: 'pieces' },
+      { product_id: 'prod-milk', quantity: 0.4, unit: 'liters' },
+      { product_id: 'prod-bakingpowder', quantity: 1, unit: 'tins' },
+      { product_id: 'prod-vanilla', quantity: 1, unit: 'bottles' },
+    ],
+  },
+];
+
+export const INITIAL_WASTE_LOGS: WasteLog[] = [
+  {
+    id: 'waste-1',
+    product_id: 'prod-milk',
+    product_name: 'Whole Milk Pasteurized',
+    quantity: 3,
+    unit: 'liters',
+    reason: 'Expired',
+    estimated_cost: 162,
+    logged_by: 'Priya Sharma',
+    logged_by_role: 'staff',
+    logged_at: '2026-03-05 08:30',
+  },
+  {
+    id: 'waste-2',
+    product_id: 'prod-eggs',
+    product_name: 'Farm Fresh Brown Eggs',
+    quantity: 6,
+    unit: 'pieces',
+    reason: 'Damaged in Kitchen',
+    estimated_cost: 39,
+    logged_by: 'Amit Verma',
+    logged_by_role: 'purchasing',
+    logged_at: '2026-03-06 11:15',
   },
 ];
 

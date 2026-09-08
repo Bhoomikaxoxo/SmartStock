@@ -7,6 +7,7 @@ import { StatusBadge } from './StatusBadge';
 import { AddProductModal } from './AddProductModal';
 import { AdjustStockModal } from './AdjustStockModal';
 import { RecordSaleModal } from './RecordSaleModal';
+import { LogWasteModal } from '../production/LogWasteModal';
 import {
   Search,
   Plus,
@@ -21,6 +22,7 @@ import {
   Clock,
   Sparkles,
   X,
+  Trash2,
 } from 'lucide-react';
 import { formatCurrencyINR, getStockStatus } from '../../services/reorderEngine';
 
@@ -39,6 +41,7 @@ export const InventoryPage: React.FC = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [adjustingProduct, setAdjustingProduct] = useState<Product | null>(null);
   const [sellingProduct, setSellingProduct] = useState<Product | null>(null);
+  const [wastingProduct, setWastingProduct] = useState<Product | null>(null);
 
   const categories = useMemo(() => {
     return Array.from(new Set(products.map((p) => p.category)));
@@ -459,6 +462,13 @@ export const InventoryPage: React.FC = () => {
                             >
                               <Sliders className="w-3.5 h-3.5 text-slate-500" />
                             </button>
+                            <button
+                              onClick={() => setWastingProduct(product)}
+                              className="p-1.5 rounded-xl border border-slate-200/90 bg-white hover:bg-rose-50 hover:border-rose-300 hover:text-rose-700 text-slate-500 transition cursor-pointer shadow-2xs"
+                              title="Log Perishable Waste / Shrinkage"
+                            >
+                              <Trash2 className="w-3.5 h-3.5 text-rose-500" />
+                            </button>
                           </div>
                         </td>
                       </tr>
@@ -552,6 +562,13 @@ export const InventoryPage: React.FC = () => {
                     >
                       <Sliders className="w-3.5 h-3.5" />
                     </button>
+                    <button
+                      onClick={() => setWastingProduct(product)}
+                      className="p-1 border border-slate-200 hover:bg-rose-50 text-slate-500 hover:text-rose-600 rounded-lg transition cursor-pointer"
+                      title="Log Perishable Waste"
+                    >
+                      <Trash2 className="w-3.5 h-3.5 text-rose-500" />
+                    </button>
                   </div>
                 </div>
               </div>
@@ -572,6 +589,12 @@ export const InventoryPage: React.FC = () => {
         <RecordSaleModal
           product={sellingProduct}
           onClose={() => setSellingProduct(null)}
+        />
+      )}
+      {wastingProduct && (
+        <LogWasteModal
+          preselectedProduct={wastingProduct}
+          onClose={() => setWastingProduct(null)}
         />
       )}
     </div>

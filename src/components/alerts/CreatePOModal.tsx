@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
-import { Product } from '../../types';
-import { X, Send, ShoppingCart, CheckCircle2, ShieldAlert, ArrowLeft, ArrowRight, FileText, Building2 } from 'lucide-react';
+import { Product, PurchaseOrder } from '../../types';
+import { X, Send, ShoppingCart, CheckCircle2, ShieldAlert, ArrowLeft, ArrowRight, FileText, Building2, Printer } from 'lucide-react';
 import { formatCurrencyINR } from '../../services/reorderEngine';
 import confetti from 'canvas-confetti';
+import { PrintablePOModal } from './PrintablePOModal';
 
 interface CreatePOModalProps {
   product?: Product;
@@ -33,7 +34,8 @@ export const CreatePOModal: React.FC<CreatePOModalProps> = ({
   const [unitCost, setUnitCost] = useState<number>(activeProduct.cost_price);
   const [notes, setNotes] = useState(`Automated replenishment for ${activeProduct.name}`);
   const [isSuccess, setIsSuccess] = useState(false);
-  const [createdPoNumber, setCreatedPoNumber] = useState('');
+  const [createdPo, setCreatedPo] = useState<PurchaseOrder | null>(null);
+  const [showVoucher, setShowVoucher] = useState(false);
 
   const selectedSupplier = suppliers.find((s) => s.id === supplierId) || suppliers[0];
   const totalCost = Math.round(quantity * unitCost);
@@ -54,7 +56,7 @@ export const CreatePOModal: React.FC<CreatePOModalProps> = ({
     });
 
     if (po) {
-      setCreatedPoNumber(po.po_number);
+      setCreatedPo(po);
       setIsSuccess(true);
       try {
         confetti({
@@ -99,7 +101,7 @@ export const CreatePOModal: React.FC<CreatePOModalProps> = ({
                 Purchase Order Dispatched
               </h3>
               <p className="text-xs text-slate-500 mt-1">
-                PO <strong className="font-mono text-slate-800">{createdPoNumber}</strong> sent to{' '}
+                PO <strong className="font-mono text-slate-800">{createdPo?.po_number}</strong> sent to{' '}
                 <strong className="text-slate-800">{selectedSupplier?.name}</strong>.
               </p>
             </div>
@@ -123,12 +125,23 @@ export const CreatePOModal: React.FC<CreatePOModalProps> = ({
               </div>
             </div>
 
-            <button
-              onClick={onClose}
-              className="mt-4 px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl transition shadow-sm cursor-pointer"
-            >
-              Done & Close
-            </button>
+            <div className="flex items-center justify-center space-x-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowVoucher(true)}
+                className="inline-flex items-center space-x-1.5 px-4 py-2.5 bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 font-bold text-xs rounded-xl transition shadow-xs cursor-pointer"
+              >
+                <Printer className="w-3.5 h-3.5 text-slate-600" />
+                <span>View Printable Voucher</span>
+              </button>
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl transition shadow-xs cursor-pointer"
+              >
+                Done & Close
+              </button>
+            </div>
           </div>
         ) : step === 1 ? (
           /* Step 1: Configuration Form */
@@ -317,6 +330,16 @@ export const CreatePOModal: React.FC<CreatePOModalProps> = ({
           </div>
         )}
       </div>
+
+      {showVoucher && createdPo && (
+        <PrintablePOModal
+          po={createdPo}
+          onClose={() => {
+            setShowVoucher(false);
+            onClose();
+          }}
+        />
+      )}
     </div>
   );
 };

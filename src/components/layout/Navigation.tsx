@@ -10,6 +10,7 @@ import {
   AlertOctagon,
   Calculator,
   Lock,
+  ChefHat,
 } from 'lucide-react';
 
 export const Navigation: React.FC = () => {
@@ -25,10 +26,10 @@ export const Navigation: React.FC = () => {
   const canAccessTab = (tabId: ActiveTab, role: UserRole): boolean => {
     if (role === 'owner') return true;
     if (role === 'purchasing') {
-      return tabId === 'dashboard' || tabId === 'inventory' || tabId === 'analytics' || tabId === 'alerts';
+      return tabId === 'dashboard' || tabId === 'inventory' || tabId === 'production' || tabId === 'analytics' || tabId === 'alerts';
     }
     // Staff
-    return tabId === 'dashboard' || tabId === 'inventory' || tabId === 'alerts';
+    return tabId === 'dashboard' || tabId === 'inventory' || tabId === 'production' || tabId === 'alerts';
   };
 
   const tabs: {
@@ -39,6 +40,7 @@ export const Navigation: React.FC = () => {
   }[] = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'inventory', label: 'Inventory Catalog', icon: Boxes },
+    { id: 'production', label: 'Production BOM', icon: ChefHat },
     { id: 'analytics', label: 'Demand Forecasting', icon: TrendingUp },
     { id: 'alerts', label: 'Priority Alerts', icon: AlertOctagon, badge: activeAlertsCount },
     { id: 'impact', label: 'Financial Impact', icon: Calculator },

@@ -11,6 +11,7 @@ import { AnalyticsPage } from './components/analytics/AnalyticsPage';
 import { AlertsPage } from './components/alerts/AlertsPage';
 import { ImpactPage } from './components/impact/ImpactPage';
 import { SettingsPage } from './components/settings/SettingsPage';
+import { ProductionPage } from './components/production/ProductionPage';
 import { Lock, ArrowLeft } from 'lucide-react';
 
 const MainLayout: React.FC = () => {
@@ -27,6 +28,8 @@ const MainLayout: React.FC = () => {
         return <DashboardPage />;
       case 'inventory':
         return <InventoryPage />;
+      case 'production':
+        return <ProductionPage />;
       case 'analytics':
         if (userRole === 'staff') {
           return (

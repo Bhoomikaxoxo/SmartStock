@@ -13,7 +13,9 @@ import {
   PlusCircle,
   CheckCircle2,
   Sparkles,
+  ScanBarcode,
 } from 'lucide-react';
+import { BarcodeScannerModal } from '../scanner/BarcodeScannerModal';
 
 export const Header: React.FC = () => {
   const { alerts, setActiveTab } = useApp();
@@ -21,6 +23,7 @@ export const Header: React.FC = () => {
   const { showToast } = useToast();
 
   const [menuOpen, setMenuOpen] = useState(false);
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   const activeAlertsCount = alerts.filter((a) => !a.resolved).length;
@@ -116,6 +119,16 @@ export const Header: React.FC = () => {
             >
               <PlusCircle className="w-3.5 h-3.5 text-amber-700" />
               <span>Log Sale</span>
+            </button>
+
+            {/* Quick Action: Barcode Receiving Terminal */}
+            <button
+              onClick={() => setIsScannerOpen(true)}
+              className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-800 bg-slate-100 hover:bg-slate-200/80 border border-slate-300 transition-all cursor-pointer shadow-2xs active:scale-95"
+              title="Open Barcode Receiving Terminal"
+            >
+              <ScanBarcode className="w-3.5 h-3.5 text-slate-700" />
+              <span>Receiving</span>
             </button>
 
             {/* Alert Indicator Pill */}
@@ -266,6 +279,10 @@ export const Header: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {isScannerOpen && (
+        <BarcodeScannerModal onClose={() => setIsScannerOpen(false)} />
+      )}
     </header>
   );
 };

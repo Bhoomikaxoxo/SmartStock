@@ -11,6 +11,7 @@ export interface Product {
   minimum_required: number;
   supplier_id: string;
   expiry_date?: string; // YYYY-MM-DD
+  barcode?: string;
   created_at: string;
   description?: string;
 }
@@ -109,10 +110,49 @@ export interface AuthSession {
   expiresAt: number; // Unix timestamp in ms
 }
 
-export type ActiveTab = 'dashboard' | 'inventory' | 'analytics' | 'alerts' | 'impact' | 'settings';
+export type ActiveTab = 'dashboard' | 'inventory' | 'production' | 'analytics' | 'alerts' | 'impact' | 'settings';
 
 export interface FinancialImpactConfig {
   incidentsBefore: number;
   avgLossPerIncident: number;
   incidentsAfter: number;
+}
+
+export interface RecipeIngredient {
+  product_id: string;
+  quantity: number; // per batch
+  unit: UnitType;
+}
+
+export interface Recipe {
+  id: string;
+  name: string;
+  category: string;
+  yield_quantity: number;
+  yield_unit: string;
+  prep_time_mins: number;
+  selling_price: number; // per yield unit
+  ingredients: RecipeIngredient[];
+  description: string;
+}
+
+export type WasteReason = 'Expired' | 'Damaged in Kitchen' | 'Over-Proofed / Burned' | 'Quality Reject';
+
+export interface WasteLog {
+  id: string;
+  product_id: string;
+  product_name: string;
+  quantity: number;
+  unit: UnitType;
+  reason: WasteReason;
+  estimated_cost: number;
+  logged_by: string;
+  logged_by_role: UserRole;
+  logged_at: string;
+}
+
+export interface SurgeModifiers {
+  rainyWeather: boolean; // +20%
+  weekendRush: boolean;  // +35%
+  festiveSeason: boolean; // +50%
 }

@@ -10,6 +10,10 @@ import {
   FinancialImpactConfig,
   ReorderRecommendation,
   UserRole,
+  Recipe,
+  WasteLog,
+  WasteReason,
+  SurgeModifiers,
 } from '../types';
 import {
   INITIAL_PRODUCTS,
@@ -17,18 +21,21 @@ import {
   INITIAL_ALERTS,
   INITIAL_STOCKOUTS,
   INITIAL_PURCHASE_ORDERS,
+  INITIAL_RECIPES,
+  INITIAL_WASTE_LOGS,
   generateSeedSales,
 } from '../data/seedData';
 import {
   computeReorderRecommendation,
   evaluateDynamicAlerts,
+  BUFFER_DAYS_DEFAULT,
 } from '../services/reorderEngine';
 import { useAuth } from './AuthContext';
 import { useToast } from './ToastContext';
 
 export interface ActivityItem {
   id: string;
-  type: 'sale' | 'reorder' | 'stockout' | 'restock' | 'alert_resolved';
+  type: 'sale' | 'reorder' | 'stockout' | 'restock' | 'alert_resolved' | 'production' | 'waste';
   title: string;
   description: string;
   actorName: string;
@@ -43,6 +50,10 @@ interface AppContextType {
   alerts: Alert[];
   stockouts: StockoutEvent[];
   purchaseOrders: PurchaseOrder[];
+  recipes: Recipe[];
+  wasteLogs: WasteLog[];
+  surgeModifiers: SurgeModifiers;
+  surgeMultiplier: number;
   activeTab: ActiveTab;
   financialConfig: FinancialImpactConfig;
   reorderRecommendations: ReorderRecommendation[];
@@ -53,6 +64,10 @@ interface AppContextType {
   addProduct: (product: Omit<Product, 'id' | 'created_at'>) => void;
   updateStock: (productId: string, newStock: number, reason?: string) => void;
   recordSale: (productId: string, unitsSold: number) => { success: boolean; error?: string };
+  produceBatch: (recipeId: string, batchCount: number) => { success: boolean; shortages?: string[] };
+  logWaste: (productId: string, quantity: number, reason: WasteReason) => { success: boolean; error?: string };
+  receiveStock: (productId: string, quantity: number, poId?: string) => void;
+  setSurgeModifiers: React.Dispatch<React.SetStateAction<SurgeModifiers>>;
   resolveAlert: (alertId: string) => void;
   createPurchaseOrder: (poData: {
     supplier_id: string;
@@ -75,6 +90,8 @@ const STORAGE_KEYS = {
   POS: 'smartstock_pos_v3',
   ACTIVITIES: 'smartstock_activities_v3',
   FINANCIAL: 'smartstock_financial_v3',
+  RECIPES: 'smartstock_recipes_v3',
+  WASTE_LOGS: 'smartstock_waste_v3',
 };
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -159,6 +176,30 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
 
+  const [recipes, setRecipes] = useState<Recipe[]>(() => {
+    const saved = localStorage.getItem(STORAGE_KEYS.RECIPES);
+    return saved ? JSON.parse(saved) : INITIAL_RECIPES;
+  });
+
+  const [wasteLogs, setWasteLogs] = useState<WasteLog[]>(() => {
+    const saved = localStorage.getItem(STORAGE_KEYS.WASTE_LOGS);
+    return saved ? JSON.parse(saved) : INITIAL_WASTE_LOGS;
+  });
+
+  const [surgeModifiers, setSurgeModifiers] = useState<SurgeModifiers>({
+    rainyWeather: false,
+    weekendRush: false,
+    festiveSeason: false,
+  });
+
+  const surgeMultiplier = useMemo(() => {
+    let multiplier = 1.0;
+    if (surgeModifiers.rainyWeather) multiplier += 0.2;
+    if (surgeModifiers.weekendRush) multiplier += 0.35;
+    if (surgeModifiers.festiveSeason) multiplier += 0.5;
+    return parseFloat(multiplier.toFixed(2));
+  }, [surgeModifiers]);
+
   // Sync to localStorage
   useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(products));
@@ -188,6 +229,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     localStorage.setItem(STORAGE_KEYS.FINANCIAL, JSON.stringify(financialConfig));
   }, [financialConfig]);
 
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.RECIPES, JSON.stringify(recipes));
+  }, [recipes]);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.WASTE_LOGS, JSON.stringify(wasteLogs));
+  }, [wasteLogs]);
+
   // Synchronize alerts with dynamic evaluator whenever products or sales change
   useEffect(() => {
     const dynamicAlerts = evaluateDynamicAlerts(products, sales, suppliers);
@@ -202,13 +251,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
   }, [products, sales, suppliers]);
 
-  // Reorder recommendations computation
+  // Reorder recommendations computation (with surge multiplier applied to burn rates)
   const reorderRecommendations = useMemo(() => {
     return products.map((product) => {
       const supplier = suppliers.find((s) => s.id === product.supplier_id);
-      return computeReorderRecommendation(product, sales, supplier);
+      return computeReorderRecommendation(product, sales, supplier, BUFFER_DAYS_DEFAULT, surgeMultiplier);
     });
-  }, [products, sales, suppliers]);
+  }, [products, sales, suppliers, surgeMultiplier]);
 
   const addActivity = (item: Omit<ActivityItem, 'id' | 'timestamp' | 'actorName' | 'actorRole'>) => {
     const newActivity: ActivityItem = {
@@ -397,6 +446,193 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return newPO;
   };
 
+  const produceBatch = (recipeId: string, batchCount: number): { success: boolean; shortages?: string[] } => {
+    const recipe = recipes.find((r) => r.id === recipeId);
+    if (!recipe) {
+      showToast('error', 'Recipe not found.');
+      return { success: false, shortages: ['Recipe not found'] };
+    }
+
+    if (batchCount <= 0) {
+      showToast('error', 'Batch count must be at least 1.');
+      return { success: false, shortages: ['Invalid batch count'] };
+    }
+
+    // Check availability of each ingredient
+    const shortages: string[] = [];
+    const deductions: { product: Product; needed: number }[] = [];
+
+    for (const ing of recipe.ingredients) {
+      const product = products.find((p) => p.id === ing.product_id);
+      const needed = parseFloat((ing.quantity * batchCount).toFixed(2));
+      if (!product) {
+        shortages.push(`Unknown ingredient ID: ${ing.product_id}`);
+      } else if (product.current_stock < needed) {
+        shortages.push(
+          `${product.name}: Requires ${needed} ${ing.unit}, available ${product.current_stock} ${ing.unit}`
+        );
+      } else {
+        deductions.push({ product, needed });
+      }
+    }
+
+    if (shortages.length > 0) {
+      showToast('error', `Cannot bake: insufficient stock for ${batchCount} batch(es).`);
+      return { success: false, shortages };
+    }
+
+    const today = new Date().toISOString().split('T')[0];
+
+    // Deduct stock from products
+    setProducts((prev) =>
+      prev.map((p) => {
+        const item = deductions.find((d) => d.product.id === p.id);
+        if (!item) return p;
+        const newStock = Math.max(0, parseFloat((p.current_stock - item.needed).toFixed(2)));
+        if (newStock === 0) {
+          const newStockout: StockoutEvent = {
+            id: `so-${Date.now()}-${p.id}`,
+            product_id: p.id,
+            product_name: p.name,
+            date: today,
+            estimated_units_lost: Math.round(item.needed * 1.5),
+            estimated_revenue_lost: Math.round(item.needed * 1.5 * p.selling_price),
+            notes: `Depleted to 0 units after baking batch of ${recipe.name}.`,
+          };
+          setStockouts((so) => [newStockout, ...so]);
+        }
+        return { ...p, current_stock: newStock };
+      })
+    );
+
+    // CRITICAL RECONCILIATION: write consumption records into the same rolling-window sales dataset
+    // so the forecasting and reorder engine immediately reflects production burn rate
+    const newConsumptionRecords: SalesRecord[] = deductions.map((d) => ({
+      id: `consume-${Date.now()}-${d.product.id}`,
+      product_id: d.product.id,
+      date: today,
+      units_sold: d.needed,
+      revenue: 0,
+    }));
+    setSales((prev) => [...newConsumptionRecords, ...prev]);
+
+    const totalYield = batchCount * recipe.yield_quantity;
+    addActivity({
+      type: 'production',
+      title: `Bake Completed: ${recipe.name}`,
+      description: `${currentUser?.name || 'Baker'} (${currentUser?.role || 'staff'}) baked ${batchCount} batch(es) of ${recipe.name} (${totalYield} ${recipe.yield_unit}). Raw ingredients deducted & consumption reconciled into forecasting engine.`,
+    });
+
+    showToast('success', `Baked ${batchCount} batch(es) of ${recipe.name} (${totalYield} ${recipe.yield_unit}).`);
+    return { success: true };
+  };
+
+  const logWaste = (productId: string, quantity: number, reason: WasteReason): { success: boolean; error?: string } => {
+    const product = products.find((p) => p.id === productId);
+    if (!product) {
+      showToast('error', 'Product not found.');
+      return { success: false, error: 'Product not found' };
+    }
+
+    if (quantity <= 0) {
+      showToast('error', 'Waste quantity must be greater than 0.');
+      return { success: false, error: 'Quantity must be positive' };
+    }
+
+    if (quantity > product.current_stock) {
+      showToast('error', `Cannot log ${quantity} ${product.unit}. Current stock is only ${product.current_stock} ${product.unit}.`);
+      return { success: false, error: 'Quantity exceeds available stock' };
+    }
+
+    const estimatedCost = Math.round(quantity * product.cost_price);
+    const newStock = Math.max(0, parseFloat((product.current_stock - quantity).toFixed(2)));
+
+    // Deduct stock
+    setProducts((prev) =>
+      prev.map((p) => (p.id === productId ? { ...p, current_stock: newStock } : p))
+    );
+
+    // Create waste log entry
+    const newLog: WasteLog = {
+      id: `waste-${Date.now()}`,
+      product_id: productId,
+      product_name: product.name,
+      quantity,
+      unit: product.unit,
+      reason,
+      estimated_cost: estimatedCost,
+      logged_by: currentUser?.name || 'Staff Member',
+      logged_by_role: currentUser?.role || 'staff',
+      logged_at: new Date().toISOString().replace('T', ' ').substring(0, 16),
+    };
+    setWasteLogs((prev) => [newLog, ...prev]);
+
+    if (newStock === 0) {
+      const today = new Date().toISOString().split('T')[0];
+      const newStockout: StockoutEvent = {
+        id: `so-${Date.now()}-${productId}`,
+        product_id: productId,
+        product_name: product.name,
+        date: today,
+        estimated_units_lost: Math.round(quantity * 1.5),
+        estimated_revenue_lost: Math.round(quantity * 1.5 * product.selling_price),
+        notes: `Depleted to 0 units after shrinkage write-off (${reason}).`,
+      };
+      setStockouts((so) => [newStockout, ...so]);
+    }
+
+    addActivity({
+      type: 'waste',
+      title: `Shrinkage Recorded: ${product.name}`,
+      description: `${currentUser?.name || 'Staff'} (${currentUser?.role || 'staff'}) logged waste: ${quantity} ${product.unit} of ${product.name} (${reason}, loss ₹${estimatedCost.toLocaleString('en-IN')}).`,
+    });
+
+    showToast('success', `Logged ${quantity} ${product.unit} ${product.name} as waste (${reason}).`);
+    return { success: true };
+  };
+
+  const receiveStock = (productId: string, quantity: number, poId?: string) => {
+    const product = products.find((p) => p.id === productId);
+    if (!product) {
+      showToast('error', 'Product not found.');
+      return;
+    }
+
+    if (quantity <= 0) {
+      showToast('error', 'Received quantity must be positive.');
+      return;
+    }
+
+    const newStock = parseFloat((product.current_stock + quantity).toFixed(2));
+    setProducts((prev) =>
+      prev.map((p) => (p.id === productId ? { ...p, current_stock: newStock } : p))
+    );
+
+    // If PO was matched, mark it as Delivered
+    if (poId) {
+      setPurchaseOrders((prev) =>
+        prev.map((po) => (po.id === poId ? { ...po, status: 'Delivered' } : po))
+      );
+    }
+
+    // Resolve matching low_stock / reorder_due alerts
+    setAlerts((prev) =>
+      prev.map((a) =>
+        a.product_id === productId && !a.resolved
+          ? { ...a, resolved: true, resolved_at: new Date().toISOString() }
+          : a
+      )
+    );
+
+    addActivity({
+      type: 'restock',
+      title: `Stock Received: ${product.name}`,
+      description: `${currentUser?.name || 'Receiving Staff'} (${currentUser?.role || 'staff'}) scanned & received ${quantity} ${product.unit} of ${product.name}${poId ? ` against open purchase order.` : '.'}`,
+    });
+
+    showToast('success', `Received ${quantity} ${product.unit} of ${product.name}. Stock updated to ${newStock} ${product.unit}.`);
+  };
+
   const updateFinancialConfig = (config: Partial<FinancialImpactConfig>) => {
     setFinancialConfig((prev) => ({ ...prev, ...config }));
   };
@@ -426,12 +662,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     localStorage.removeItem(STORAGE_KEYS.POS);
     localStorage.removeItem(STORAGE_KEYS.ACTIVITIES);
     localStorage.removeItem(STORAGE_KEYS.FINANCIAL);
+    localStorage.removeItem(STORAGE_KEYS.RECIPES);
+    localStorage.removeItem(STORAGE_KEYS.WASTE_LOGS);
 
     setProducts(INITIAL_PRODUCTS);
     setSales(generateSeedSales());
     setAlerts(INITIAL_ALERTS);
     setStockouts(INITIAL_STOCKOUTS);
     setPurchaseOrders(INITIAL_PURCHASE_ORDERS);
+    setRecipes(INITIAL_RECIPES);
+    setWasteLogs(INITIAL_WASTE_LOGS);
+    setSurgeModifiers({
+      rainyWeather: false,
+      weekendRush: false,
+      festiveSeason: false,
+    });
     setFinancialConfig({
       incidentsBefore: 5,
       avgLossPerIncident: 2000,
@@ -459,6 +704,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         alerts,
         stockouts,
         purchaseOrders,
+        recipes,
+        wasteLogs,
+        surgeModifiers,
+        surgeMultiplier,
         activeTab,
         financialConfig,
         reorderRecommendations,
@@ -467,6 +716,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         addProduct,
         updateStock,
         recordSale,
+        produceBatch,
+        logWaste,
+        receiveStock,
+        setSurgeModifiers,
         resolveAlert,
         createPurchaseOrder,
         updateFinancialConfig,
