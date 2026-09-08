@@ -11,7 +11,6 @@ import {
   Calendar,
   Search,
   X,
-  BellRing,
 } from 'lucide-react';
 
 export const AlertsPage: React.FC = () => {

@@ -11,7 +11,6 @@ import {
   Tooltip,
   ResponsiveContainer,
   Legend,
-  Cell,
 } from 'recharts';
 import {
   Calculator,
@@ -21,7 +20,7 @@ import {
 import { formatCurrencyINR } from '../../services/reorderEngine';
 
 export const ImpactPage: React.FC = () => {
-  const { financialConfig, updateFinancialConfig, stockouts } = useApp();
+  const { financialConfig, updateFinancialConfig } = useApp();
   const { currentUser } = useAuth();
   const { tokens } = useTheme();
 
@@ -213,7 +212,7 @@ export const ImpactPage: React.FC = () => {
               <span>Payback Period: &lt; 4 Days</span>
             </div>
             <p className="text-emerald-800 text-[11px] leading-relaxed">
-              At ₹{monthlySavings.toLocaleString('en-IN')}/mo protected revenue, the ₹999/mo plan cost is recouped in the first week.
+              At {formatCurrencyINR(monthlySavings)}/mo protected revenue, the ₹999/mo plan cost is recouped in the first week.
             </p>
           </div>
         </div>

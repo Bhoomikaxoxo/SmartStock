@@ -52,11 +52,11 @@ export const KpiProgress: React.FC = () => {
             <h3 className="text-sm font-bold text-slate-900 tracking-tight">
               Operational Goals vs. Benchmarks
             </h3>
-            <p className="text-xs text-slate-500">Q3 Bakery Operations Targets</p>
+            <p className="text-xs text-slate-500">Business Objective Targets</p>
           </div>
         </div>
         <span className="text-[11px] font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200/50">
-          Q3 2026
+          FY 2026-27
         </span>
       </div>
 

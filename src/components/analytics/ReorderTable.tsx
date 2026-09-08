@@ -4,15 +4,11 @@ import { useAuth } from '../../context/AuthContext';
 import { Product } from '../../types';
 import { CreatePOModal } from '../alerts/CreatePOModal';
 import {
-  Calendar,
   ShoppingCart,
   AlertTriangle,
   Code2,
   Clock,
-  CheckCircle2,
-  Boxes,
 } from 'lucide-react';
-import { formatCurrencyINR } from '../../services/reorderEngine';
 
 export const ReorderTable: React.FC = () => {
   const { reorderRecommendations, products } = useApp();

@@ -14,13 +14,28 @@ import { AlertsPage } from './components/alerts/AlertsPage';
 import { ImpactPage } from './components/impact/ImpactPage';
 import { SettingsPage } from './components/settings/SettingsPage';
 import { ProductionPage } from './components/production/ProductionPage';
-import { canAccessTab } from './components/layout/Navigation';
+import { NotFoundPage } from './components/common/NotFoundPage';
+import { canAccessTab } from './utils/navigationPermissions';
 
 const MainLayout: React.FC = () => {
   const { activeTab, setActiveTab } = useApp();
   const { currentUser } = useAuth();
 
   const userRole = currentUser?.role || 'staff';
+
+  // Dynamic route document title
+  React.useEffect(() => {
+    const titles: Record<string, string> = {
+      dashboard: 'Dashboard · SmartStock',
+      inventory: 'Inventory Catalog · SmartStock',
+      production: 'Production BOM · SmartStock',
+      analytics: 'Demand Forecasting · SmartStock',
+      alerts: 'Priority Alerts · SmartStock',
+      impact: 'Financial Impact · SmartStock',
+      settings: 'System Settings · SmartStock',
+    };
+    document.title = titles[activeTab] || 'SmartStock — Artisan Inventory OS';
+  }, [activeTab]);
 
   // Automatically ensure active tab is allowed for current role, otherwise silently fallback to dashboard
   React.useEffect(() => {
@@ -51,7 +66,7 @@ const MainLayout: React.FC = () => {
       case 'settings':
         return <SettingsPage />;
       default:
-        return <DashboardPage />;
+        return <NotFoundPage onReturn={() => setActiveTab('dashboard')} />;
     }
   };
 

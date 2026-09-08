@@ -3,7 +3,6 @@ import { useAuth } from '../../context/AuthContext';
 import { Alert, Product } from '../../types';
 import {
   AlertTriangle,
-  AlertCircle,
   Info,
   Calendar,
   CheckCircle2,

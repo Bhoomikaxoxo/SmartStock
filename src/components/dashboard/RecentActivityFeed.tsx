@@ -8,7 +8,6 @@ import {
   AlertTriangle,
   ShoppingCart,
   CheckCircle2,
-  Package,
   History,
   ChefHat,
   Trash2,

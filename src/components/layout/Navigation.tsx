@@ -11,26 +11,7 @@ import {
   ChefHat,
 } from 'lucide-react';
 
-// Permission definition
-export const canAccessTab = (tabId: ActiveTab, role: UserRole): boolean => {
-  if (role === 'owner') return true;
-  if (role === 'purchasing') {
-    return (
-      tabId === 'dashboard' ||
-      tabId === 'inventory' ||
-      tabId === 'production' ||
-      tabId === 'analytics' ||
-      tabId === 'alerts'
-    );
-  }
-  // Staff
-  return (
-    tabId === 'dashboard' ||
-    tabId === 'inventory' ||
-    tabId === 'production' ||
-    tabId === 'alerts'
-  );
-};
+import { canAccessTab } from '../../utils/navigationPermissions';
 
 export const Navigation: React.FC = () => {
   const { activeTab, setActiveTab, alerts } = useApp();
@@ -58,7 +39,7 @@ export const Navigation: React.FC = () => {
   const visibleTabs = tabs.filter((tab) => canAccessTab(tab.id, userRole));
 
   return (
-    <nav className="glass-nav sticky top-16 z-30 transition-all">
+    <nav className="glass-nav sticky top-16 z-30 transition-all hidden md:block">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex space-x-1 sm:space-x-1.5 overflow-x-auto scrollbar-none py-2.5">
           {visibleTabs.map((tab) => {

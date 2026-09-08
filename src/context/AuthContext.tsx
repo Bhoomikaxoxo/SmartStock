@@ -4,34 +4,7 @@ import { User, AuthSession } from '../types';
 const SESSION_STORAGE_KEY = 'smartstock_session_v1';
 const SESSION_DURATION_MS = 8 * 60 * 60 * 1000; // 8 hours
 
-// Seeded user database for prototype demonstration
-export const SEEDED_USERS: (User & { passwordHash: string })[] = [
-  {
-    id: 'user-owner',
-    name: 'Rahul Nair',
-    email: 'owner@sweetcrustbakery.com',
-    role: 'owner',
-    avatarInitial: 'RN',
-    // SHA-256 for 'demo1234' is "fe01ce2a7fbac8fafaed7c982a04e229" (truncated demo tag)
-    passwordHash: 'demo1234',
-  },
-  {
-    id: 'user-purchasing',
-    name: 'Amit Verma',
-    email: 'purchasing@sweetcrustbakery.com',
-    role: 'purchasing',
-    avatarInitial: 'AV',
-    passwordHash: 'demo1234',
-  },
-  {
-    id: 'user-staff',
-    name: 'Priya Sharma',
-    email: 'staff@sweetcrustbakery.com',
-    role: 'staff',
-    avatarInitial: 'PS',
-    passwordHash: 'demo1234',
-  },
-];
+import { SEEDED_USERS } from '../data/usersData';
 
 interface AuthContextType {
   currentUser: User | null;
@@ -58,7 +31,7 @@ export const AuthProvider: React.FC<{
           localStorage.removeItem(SESSION_STORAGE_KEY);
         }
       }
-    } catch (e) {
+    } catch {
       localStorage.removeItem(SESSION_STORAGE_KEY);
     }
     return null;

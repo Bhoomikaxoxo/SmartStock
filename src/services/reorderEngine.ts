@@ -243,8 +243,6 @@ export function getMonthlyDemandTrend(
 
   // Simple Linear Regression over x=[1, 2, 3] to project x=4
   // slope m = sum((x - x_bar)(y - y_bar)) / sum((x - x_bar)^2)
-  const xVals = [1, 2, 3];
-  const yVals = [m1Total, m2Total, m3Total];
   const xBar = 2;
   const yBar = (m1Total + m2Total + m3Total) / 3;
 

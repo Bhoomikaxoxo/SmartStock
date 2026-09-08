@@ -1,21 +1,21 @@
 import React, { useState, useMemo } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../context/ToastContext';
 import {
   Activity,
-  AlertTriangle,
   RotateCcw,
   ShieldCheck,
   TrendingUp,
   Clock,
   DollarSign,
-  Zap,
 } from 'lucide-react';
 import { formatCurrencyINR, computeReorderRecommendation, BUFFER_DAYS_DEFAULT } from '../../services/reorderEngine';
 
 export const SupplyChainStressSimulator: React.FC = () => {
   const { products, sales, suppliers, reorderRecommendations } = useApp();
   const { currentUser } = useAuth();
+  const { showToast } = useToast();
 
   // Owner only gate
   const isOwner = currentUser?.role === 'owner';
@@ -81,6 +81,7 @@ export const SupplyChainStressSimulator: React.FC = () => {
     setDelayDays(0);
     setInflationPct(0);
     setDemandShockPct(0);
+    showToast('info', 'Stress test parameters reset to normal baseline.');
   };
 
   if (!isOwner) {

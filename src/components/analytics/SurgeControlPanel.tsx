@@ -1,22 +1,26 @@
 import React from 'react';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
-import { CloudRain, TrendingUp, Sparkles, SlidersHorizontal, ShieldAlert } from 'lucide-react';
+import { useToast } from '../../context/ToastContext';
+import { CloudRain, TrendingUp, Sparkles, SlidersHorizontal } from 'lucide-react';
 import { sounds } from '../../utils/audio';
 
 export const SurgeControlPanel: React.FC = () => {
   const { surgeModifiers, setSurgeModifiers, surgeMultiplier } = useApp();
   const { currentUser } = useAuth();
+  const { showToast } = useToast();
 
   const isRestricted = currentUser?.role === 'staff';
 
   const toggleModifier = (key: keyof typeof surgeModifiers) => {
     if (isRestricted) return;
     sounds.playToggleClick();
+    const willEnable = !surgeModifiers[key];
     setSurgeModifiers((prev) => ({
       ...prev,
-      [key]: !prev[key],
+      [key]: willEnable,
     }));
+    showToast('info', `${willEnable ? 'Enabled' : 'Disabled'} ${key === 'rainyWeather' ? 'Rainy Weather (+20%)' : key === 'weekendRush' ? 'Weekend Rush (+35%)' : 'Holiday Rush (+50%)'} demand surge.`);
   };
 
   if (isRestricted) {

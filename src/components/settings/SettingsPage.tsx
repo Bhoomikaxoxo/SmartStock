@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
-import { useAuth, SEEDED_USERS } from '../../context/AuthContext';
+import { useAuth } from '../../context/AuthContext';
+import { SEEDED_USERS } from '../../data/usersData';
 import { useToast } from '../../context/ToastContext';
 import {
   Settings,
   Users,
-  Shield,
   Zap,
   RotateCcw,
   ChevronDown,
@@ -15,7 +15,6 @@ import {
   ScanLine,
   MessageSquareCode,
   CheckCircle2,
-  ArrowRight,
 } from 'lucide-react';
 
 export const SettingsPage: React.FC = () => {

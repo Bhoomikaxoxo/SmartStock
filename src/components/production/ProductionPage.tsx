@@ -14,7 +14,6 @@ import {
   DollarSign,
   TrendingUp,
   PackageCheck,
-  ShieldAlert,
 } from 'lucide-react';
 import { formatCurrencyINR } from '../../services/reorderEngine';
 import { BakeBatchModal } from './BakeBatchModal';

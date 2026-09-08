@@ -15,11 +15,9 @@ import {
   Sliders,
   TrendingUp,
   Download,
-  Calendar,
   Boxes,
   LayoutGrid,
   List,
-  AlertTriangle,
   Clock,
   X,
   Trash2,
@@ -378,7 +376,21 @@ export const InventoryPage: React.FC = () => {
                 {filteredProducts.length === 0 ? (
                   <tr>
                     <td colSpan={8} className="py-16 text-center text-slate-400 font-medium">
-                      No products match the selected filters.
+                      <Boxes className="w-10 h-10 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
+                      <p className="text-slate-600 dark:text-slate-400 font-bold text-xs">No products match the selected filters.</p>
+                      <p className="text-slate-400 dark:text-slate-500 text-[11px] mt-0.5">Try clearing search keywords or active status filters.</p>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSearchTerm('');
+                          setSelectedCategory('all');
+                          setSelectedSupplier('all');
+                          setSelectedStatus('all');
+                        }}
+                        className="mt-3 px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs rounded-xl transition cursor-pointer min-h-[36px]"
+                      >
+                        Reset All Filters
+                      </button>
                     </td>
                   </tr>
                 ) : (
@@ -524,8 +536,27 @@ export const InventoryPage: React.FC = () => {
         </div>
       ) : (
         /* View Mode 2: Visual Card Grid */
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {filteredProducts.map((product) => {
+        filteredProducts.length === 0 ? (
+          <div className="py-16 text-center glass-card rounded-2xl border border-slate-200/80 p-8 space-y-3">
+            <Boxes className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto" />
+            <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300">No products match the selected filters.</h3>
+            <p className="text-xs text-slate-400 dark:text-slate-500">Try adjusting your search query, supplier filter, or category selection.</p>
+            <button
+              type="button"
+              onClick={() => {
+                setSearchTerm('');
+                setSelectedCategory('all');
+                setSelectedSupplier('all');
+                setSelectedStatus('all');
+              }}
+              className="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs rounded-xl transition cursor-pointer min-h-[36px]"
+            >
+              Reset All Filters
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {filteredProducts.map((product) => {
             const supplier = supplierMap.get(product.supplier_id);
             const stockValue = product.current_stock * product.cost_price;
             const { status } = getStockStatus(product.current_stock, product.minimum_required);
@@ -642,6 +673,7 @@ export const InventoryPage: React.FC = () => {
             );
           })}
         </div>
+        )
       )}
 
       {/* Modals */}

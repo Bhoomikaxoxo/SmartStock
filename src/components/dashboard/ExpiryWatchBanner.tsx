@@ -1,13 +1,13 @@
 import React from 'react';
 import { useApp } from '../../context/AppContext';
-import { Clock, AlertTriangle, ChefHat, ArrowRight, ShieldCheck, Sparkles } from 'lucide-react';
+import { Clock, ChefHat, ArrowRight, ShieldCheck } from 'lucide-react';
 import { sounds } from '../../utils/audio';
 
 export const ExpiryWatchBanner: React.FC = () => {
   const { getExpiringLots, setActiveTab } = useApp();
   const expiringLots = getExpiringLots(7);
 
-  const handlePrioritize = (productName: string) => {
+  const handlePrioritize = () => {
     sounds.playClick();
     setActiveTab('production');
   };
@@ -130,7 +130,7 @@ export const ExpiryWatchBanner: React.FC = () => {
                 </span>
                 <button
                   type="button"
-                  onClick={() => handlePrioritize(lot.product?.name || '')}
+                  onClick={handlePrioritize}
                   className="px-2.5 py-1 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 rounded-lg text-[10px] font-bold transition shadow-2xs inline-flex items-center space-x-1 cursor-pointer"
                 >
                   <ChefHat className="w-3 h-3 text-amber-600 dark:text-amber-400" />

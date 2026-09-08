@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import {
   AreaChart,
   Area,
-  Line,
   XAxis,
   YAxis,
   CartesianGrid,

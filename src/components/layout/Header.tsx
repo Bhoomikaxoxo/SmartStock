@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
-import { useAuth, SEEDED_USERS } from '../../context/AuthContext';
+import { useAuth } from '../../context/AuthContext';
+import { SEEDED_USERS } from '../../data/usersData';
 import { useToast } from '../../context/ToastContext';
 import {
   Package,
@@ -8,14 +9,13 @@ import {
   LogOut,
   Settings,
   ChevronDown,
-  User,
-  Shield,
   PlusCircle,
   CheckCircle2,
-  Sparkles,
   ScanBarcode,
+  Menu,
 } from 'lucide-react';
 import { BarcodeScannerModal } from '../scanner/BarcodeScannerModal';
+import { MobileNavDrawer } from './MobileNavDrawer';
 
 export const Header: React.FC = () => {
   const { alerts, setActiveTab } = useApp();
@@ -23,6 +23,7 @@ export const Header: React.FC = () => {
   const { showToast } = useToast();
 
   const [menuOpen, setMenuOpen] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -97,7 +98,16 @@ export const Header: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Left: Brand Identity & Store Branch Pill */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 sm:space-x-4">
+            <button
+              type="button"
+              onClick={() => setMobileNavOpen(true)}
+              className="md:hidden p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer min-w-[40px] min-h-[40px] flex items-center justify-center -ml-1"
+              aria-label="Open mobile menu"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+
             <div
               onClick={() => setActiveTab('dashboard')}
               className="flex items-center space-x-3 cursor-pointer group"
@@ -312,6 +322,12 @@ export const Header: React.FC = () => {
       {isScannerOpen && (
         <BarcodeScannerModal onClose={() => setIsScannerOpen(false)} />
       )}
+
+      <MobileNavDrawer
+        isOpen={mobileNavOpen}
+        onClose={() => setMobileNavOpen(false)}
+        onOpenScanner={() => setIsScannerOpen(true)}
+      />
     </header>
   );
 };

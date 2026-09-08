@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
-import { Product, StockLot } from '../../types';
-import { X, Layers, Plus, Calendar, Clock, AlertTriangle, CheckCircle2, ShieldCheck } from 'lucide-react';
+import { Product } from '../../types';
+import { X, Layers, Plus, CheckCircle2 } from 'lucide-react';
 import { sounds } from '../../utils/audio';
 
 interface ProductLotsModalProps {
@@ -16,7 +16,7 @@ export const ProductLotsModal: React.FC<ProductLotsModalProps> = ({ product, onC
   const [showAddForm, setShowAddForm] = useState(false);
   const [newQuantity, setNewQuantity] = useState<number>(10);
   const [newLotNumber, setNewLotNumber] = useState<string>(
-    `LOT-${product.category.substring(0, 3).toUpperCase()}-${Date.now().toString().slice(-4)}`
+    () => `LOT-${product.category.substring(0, 3).toUpperCase()}-${Date.now().toString().slice(-4)}`
   );
 
   // Compute default expiry based on shelf-life
@@ -58,28 +58,28 @@ export const ProductLotsModal: React.FC<ProductLotsModalProps> = ({ product, onC
     .reduce((sum, l) => sum + l.quantity, 0);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-md p-4 overflow-y-auto animate-fade-in">
-      <div className="glass-modal rounded-3xl shadow-elevated max-w-2xl w-full p-6 sm:p-7 border border-slate-200/90 relative animate-scale-in my-8">
-        {/* Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-md p-4 animate-fade-in">
+      <div className="glass-modal rounded-3xl shadow-elevated max-w-2xl w-full max-h-[85vh] sm:max-h-[90vh] flex flex-col border border-slate-200/90 dark:border-slate-800 relative animate-scale-in overflow-hidden">
+        {/* Pinned Modal Header */}
+        <div className="p-5 sm:p-6 pb-4 border-b border-slate-100 dark:border-slate-800 shrink-0 flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center font-bold border border-amber-200/60 shadow-2xs">
+            <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 flex items-center justify-center font-bold border border-amber-200/60 dark:border-amber-800/50 shadow-2xs">
               <Layers className="w-5 h-5 stroke-[2.2]" />
             </div>
             <div>
               <div className="flex items-center space-x-2">
-                <h2 className="text-base font-black text-slate-900 tracking-tight">
+                <h2 className="text-base font-black text-slate-900 dark:text-slate-100 tracking-tight">
                   FIFO Lots & Batch Traceability
                 </h2>
                 {product.is_perishable && (
-                  <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200 uppercase tracking-wider">
+                  <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 uppercase tracking-wider">
                     Perishable
                   </span>
                 )}
               </div>
-              <p className="text-xs text-slate-500 font-medium mt-0.5">
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">
                 {product.name} • Total Active Stock:{' '}
-                <strong className="text-slate-800 font-mono">
+                <strong className="text-slate-800 dark:text-slate-200 font-mono">
                   {totalLotStock} {product.unit}
                 </strong>
               </p>
@@ -87,16 +87,18 @@ export const ProductLotsModal: React.FC<ProductLotsModalProps> = ({ product, onC
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer"
+            className="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+            aria-label="Close modal"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <div className="mt-5 space-y-4 text-xs">
+        {/* Scrollable Modal Body */}
+        <div className="p-5 sm:p-6 overflow-y-auto flex-1 space-y-4 text-xs">
           {/* Action Bar */}
           <div className="flex items-center justify-between">
-            <span className="font-bold text-slate-700">
+            <span className="font-bold text-slate-700 dark:text-slate-300">
               Active Batches ({lots.filter((l) => l.quantity > 0).length})
             </span>
             <button
@@ -105,36 +107,36 @@ export const ProductLotsModal: React.FC<ProductLotsModalProps> = ({ product, onC
                 sounds.playClick();
                 setShowAddForm(!showAddForm);
               }}
-              className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition flex items-center space-x-1.5 cursor-pointer shadow-2xs"
+              className="px-3.5 py-2 bg-slate-900 dark:bg-amber-600 hover:bg-slate-800 dark:hover:bg-amber-500 text-white rounded-xl text-xs font-bold transition flex items-center space-x-1.5 cursor-pointer shadow-2xs min-h-[40px]"
             >
               <Plus className="w-3.5 h-3.5" />
-              <span>{showAddForm ? 'Cancel New Lot' : 'Register Incoming Lot'}</span>
+              <span>{showAddForm ? 'Cancel New Lot' : 'Register New Batch Lot'}</span>
             </button>
           </div>
 
-          {/* New Lot Form */}
+          {/* Add Form Accordion */}
           {showAddForm && (
             <form
               onSubmit={handleAddLot}
-              className="p-4 bg-slate-50/90 rounded-2xl border border-slate-200/80 space-y-3 animate-scale-in"
+              className="p-4 bg-slate-50/90 dark:bg-slate-800/60 rounded-2xl border border-slate-200/80 dark:border-slate-700/60 space-y-3 animate-fade-in"
             >
-              <h3 className="font-bold text-slate-900 text-xs">Register Incoming Ingredient Batch</h3>
+              <div className="font-bold text-slate-900 dark:text-slate-100 text-xs">Register Incoming Batch Lot</div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
-                  <label className="block font-semibold text-slate-500 text-[11px] mb-1">
-                    Lot / Batch Number
+                  <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-400 mb-1">
+                    Lot / Batch Number *
                   </label>
                   <input
                     type="text"
                     required
                     value={newLotNumber}
                     onChange={(e) => setNewLotNumber(e.target.value)}
-                    className="w-full px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-xs font-mono font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-mono text-xs font-bold"
                   />
                 </div>
                 <div>
-                  <label className="block font-semibold text-slate-500 text-[11px] mb-1">
-                    Quantity ({product.unit})
+                  <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-400 mb-1">
+                    Received Quantity ({product.unit}) *
                   </label>
                   <input
                     type="number"
@@ -143,129 +145,112 @@ export const ProductLotsModal: React.FC<ProductLotsModalProps> = ({ product, onC
                     required
                     value={newQuantity}
                     onChange={(e) => setNewQuantity(parseFloat(e.target.value) || 0)}
-                    className="w-full px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-xs font-mono font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-mono text-xs font-bold"
                   />
                 </div>
                 <div>
-                  <label className="block font-semibold text-slate-500 text-[11px] mb-1">
-                    Use-By / Expiry Date
+                  <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-400 mb-1">
+                    Expiration Date *
                   </label>
                   <input
                     type="date"
                     required
                     value={newExpiryDate}
                     onChange={(e) => setNewExpiryDate(e.target.value)}
-                    className="w-full px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-xs font-mono font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-xs font-medium"
                   />
                 </div>
               </div>
-              <div className="flex items-center justify-between pt-1">
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-400 mb-1">Notes / Origin</label>
                 <input
                   type="text"
-                  placeholder="Lot inspection notes (optional)..."
                   value={newNotes}
                   onChange={(e) => setNewNotes(e.target.value)}
-                  className="flex-1 max-w-sm px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500 mr-2"
+                  placeholder="e.g. Millers Gold shipment, invoice #7712"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-xs"
                 />
+              </div>
+
+              <div className="flex justify-end pt-1">
                 <button
                   type="submit"
-                  className="px-4 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold transition shadow-xs cursor-pointer"
+                  className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl transition text-xs shadow-xs min-h-[40px]"
                 >
-                  Save Batch
+                  Confirm Batch Entry
                 </button>
               </div>
             </form>
           )}
 
-          {/* Lots Table */}
-          <div className="border border-slate-200/80 rounded-2xl overflow-hidden shadow-2xs">
+          {/* Batches Table */}
+          <div className="border border-slate-200 dark:border-slate-800 rounded-2xl overflow-x-auto shadow-2xs">
             <table className="w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="bg-slate-50/90 border-b border-slate-200/80 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                  <th className="py-2.5 px-3">Lot Number</th>
-                  <th className="py-2.5 px-3">Remaining Balance</th>
+                <tr className="bg-slate-50/90 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider text-[11px] border-b border-slate-200 dark:border-slate-700">
+                  <th className="py-2.5 px-3">Lot Code</th>
+                  <th className="py-2.5 px-3">Available / Initial</th>
                   <th className="py-2.5 px-3">Received</th>
-                  <th className="py-2.5 px-3">Expiry Date</th>
-                  <th className="py-2.5 px-3 text-right whitespace-nowrap">FIFO Status</th>
+                  <th className="py-2.5 px-3">Expiration Date</th>
+                  <th className="py-2.5 px-3 text-right">FIFO Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 bg-white">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800 bg-white dark:bg-slate-900">
                 {lots.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="py-6 text-center text-slate-400 font-medium">
-                      No batch lots recorded for this product yet.
+                    <td colSpan={5} className="py-8 text-center text-slate-400">
+                      No tracked batch lots found for this product.
                     </td>
                   </tr>
                 ) : (
-                  lots
-                    .sort((a, b) => a.expiry_date.localeCompare(b.expiry_date))
-                    .map((lot, idx) => {
+                  [...lots]
+                    .sort((a, b) => new Date(a.expiry_date).getTime() - new Date(b.expiry_date).getTime())
+                    .map((lot) => {
                       const exp = new Date(lot.expiry_date);
                       exp.setHours(0, 0, 0, 0);
-                      const diffDays = Math.ceil(
-                        (exp.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
-                      );
+                      const diffDays = Math.ceil((exp.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
                       const isDepleted = lot.quantity <= 0;
                       const isUrgent = !isDepleted && diffDays <= 2;
-                      const isWarning = !isDepleted && diffDays > 2 && diffDays <= 7;
+                      const isWarning = !isDepleted && diffDays > 2 && diffDays <= 5;
 
                       return (
                         <tr
                           key={lot.id}
-                          className={`hover:bg-slate-50/60 transition ${
+                          className={`transition ${
                             isDepleted
-                              ? 'opacity-40 bg-slate-50/30'
-                              : idx === 0
-                              ? 'bg-amber-50/30 font-medium'
-                              : ''
+                              ? 'opacity-45 bg-slate-50/50 dark:bg-slate-900/30'
+                              : isUrgent
+                              ? 'bg-rose-50/40 dark:bg-rose-950/20'
+                              : isWarning
+                              ? 'bg-amber-50/30 dark:bg-amber-950/20'
+                              : 'hover:bg-slate-50/80 dark:hover:bg-slate-800/50'
                           }`}
                         >
-                          <td className="py-2.5 px-3 font-mono font-bold text-slate-900">
-                            <div className="flex items-center space-x-1.5">
-                              <span>{lot.lot_number}</span>
-                              {idx === 0 && !isDepleted && (
-                                <span className="text-[9px] px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 border border-amber-300 uppercase font-black">
-                                  Next to Consume
-                                </span>
-                              )}
-                            </div>
+                          <td className="py-2.5 px-3 font-mono font-bold text-slate-900 dark:text-slate-100">
+                            <span>{lot.lot_number}</span>
                             {lot.notes && (
-                              <p className="text-[10px] text-slate-400 font-sans font-normal mt-0.5">
+                              <span className="block text-[10px] text-slate-400 font-sans font-normal truncate max-w-[150px]">
                                 {lot.notes}
-                              </p>
+                              </span>
                             )}
                           </td>
-                          <td className="py-2.5 px-3 font-mono">
-                            <span className="font-extrabold text-slate-800">
-                              {lot.quantity} {product.unit}
-                            </span>
-                            <span className="text-slate-400 text-[10px] block">
-                              of {lot.initial_quantity} {product.unit} initial
-                            </span>
+                          <td className="py-2.5 px-3 font-mono font-bold text-slate-800 dark:text-slate-200 tabular-nums">
+                            {lot.quantity} / {lot.initial_quantity} {product.unit}
                           </td>
-                          <td className="py-2.5 px-3 text-slate-500 font-mono text-[11px]">
+                          <td className="py-2.5 px-3 text-slate-600 dark:text-slate-400 font-mono text-[11px]">
                             {lot.received_date}
                           </td>
-                          <td className="py-2.5 px-3 font-mono text-[11px]">
-                            <span
-                              className={`font-semibold ${
-                                isUrgent
-                                  ? 'text-rose-700'
-                                  : isWarning
-                                  ? 'text-amber-700'
-                                  : 'text-slate-700'
-                              }`}
-                            >
-                              {lot.expiry_date}
-                            </span>
+                          <td className="py-2.5 px-3 font-mono">
+                            <span className="text-slate-800 dark:text-slate-200 font-bold block">{lot.expiry_date}</span>
                             {!isDepleted && (
                               <span
                                 className={`block text-[10px] font-extrabold mt-0.5 ${
                                   isUrgent
-                                    ? 'text-rose-600'
+                                    ? 'text-rose-600 dark:text-rose-400'
                                     : isWarning
-                                    ? 'text-amber-600'
-                                    : 'text-emerald-600'
+                                    ? 'text-amber-600 dark:text-amber-400'
+                                    : 'text-emerald-600 dark:text-emerald-400'
                                 }`}
                               >
                                 {diffDays <= 0
@@ -280,12 +265,12 @@ export const ProductLotsModal: React.FC<ProductLotsModalProps> = ({ product, onC
                             <span
                               className={`inline-flex items-center justify-center px-2.5 py-1 rounded-full text-[10px] font-extrabold border whitespace-nowrap shrink-0 leading-none ${
                                 isDepleted
-                                  ? 'bg-slate-100 text-slate-500 border-slate-200'
+                                  ? 'bg-slate-100 dark:bg-slate-800 text-slate-500 border-slate-200 dark:border-slate-700'
                                   : isUrgent
-                                  ? 'bg-rose-50 text-rose-700 border-rose-200/90'
+                                  ? 'bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border-rose-200/90 dark:border-rose-800'
                                   : isWarning
-                                  ? 'bg-amber-50 text-amber-700 border-amber-200/90'
-                                  : 'bg-emerald-50 text-emerald-700 border-emerald-200/90'
+                                  ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-200/90 dark:border-amber-800'
+                                  : 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200/90 dark:border-emerald-800'
                               }`}
                             >
                               {isDepleted ? 'Depleted' : isUrgent ? 'Expiring Soon' : isWarning ? 'Use Soon' : 'Healthy Shelf'}
@@ -298,14 +283,21 @@ export const ProductLotsModal: React.FC<ProductLotsModalProps> = ({ product, onC
               </tbody>
             </table>
           </div>
+        </div>
 
-          <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/60 text-[11px] text-slate-500 flex items-center justify-between">
-            <span className="flex items-center space-x-1">
-              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-              <span>FIFO Guarantee: Kitchen bakes strictly deduct from the earliest expiring batch first.</span>
-            </span>
-            <span className="font-mono text-slate-700 font-bold">Oldest Lot First</span>
+        {/* Pinned Modal Footer */}
+        <div className="p-4 sm:p-5 border-t border-slate-100 dark:border-slate-800 shrink-0 bg-slate-50/50 dark:bg-slate-900/50 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="flex items-center space-x-1.5 text-[11px] text-slate-500 dark:text-slate-400">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+            <span>FIFO Guarantee: Kitchen bakes strictly deduct from earliest expiring batch first.</span>
           </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="w-full sm:w-auto px-5 py-2.5 bg-slate-900 dark:bg-amber-600 hover:bg-slate-800 dark:hover:bg-amber-500 text-white font-bold rounded-xl transition text-xs min-h-[40px] shadow-xs"
+          >
+            Close
+          </button>
         </div>
       </div>
     </div>

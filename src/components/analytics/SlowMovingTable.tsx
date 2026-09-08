@@ -1,7 +1,7 @@
 import React from 'react';
 import { Product, SalesRecord } from '../../types';
 import { getSlowMovingProducts, formatCurrencyINR } from '../../services/reorderEngine';
-import { AlertCircle, IndianRupee, Hourglass } from 'lucide-react';
+import { AlertCircle, Hourglass } from 'lucide-react';
 
 interface SlowMovingTableProps {
   products: Product[];
