@@ -1,6 +1,7 @@
 import React from 'react';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import {
   BarChart,
   Bar,
@@ -17,15 +18,13 @@ import {
   RotateCcw,
   CheckCircle2,
   Lock,
-  TrendingUp,
-  ShieldCheck,
-  Zap,
 } from 'lucide-react';
 import { formatCurrencyINR } from '../../services/reorderEngine';
 
 export const ImpactPage: React.FC = () => {
   const { financialConfig, updateFinancialConfig, stockouts } = useApp();
   const { currentUser } = useAuth();
+  const { tokens } = useTheme();
 
   const { incidentsBefore, avgLossPerIncident, incidentsAfter } = financialConfig;
 
@@ -244,26 +243,29 @@ export const ImpactPage: React.FC = () => {
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={comparisonData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="period" tick={{ fontSize: 11, fill: '#64748b' }} tickLine={false} />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={tokens.chart.grid} />
+                <XAxis dataKey="period" tick={{ fontSize: 11, fill: tokens.chart.axisText }} tickLine={false} />
                 <YAxis
-                  tick={{ fontSize: 11, fill: '#64748b' }}
+                  tick={{ fontSize: 11, fill: tokens.chart.axisText }}
                   tickLine={false}
                   tickFormatter={(v) => `₹${(v / 1000).toFixed(0)}k`}
                 />
                 <Tooltip
                   formatter={(val: any) => [formatCurrencyINR(Number(val)), 'Loss Amount']}
                   contentStyle={{
-                    backgroundColor: 'rgba(15, 23, 42, 0.95)',
-                    borderColor: 'rgba(51, 65, 85, 0.8)',
-                    color: '#fff',
+                    backgroundColor: tokens.chart.tooltipBg,
+                    borderColor: tokens.chart.tooltipBorder,
+                    color: tokens.textPrimary,
                     borderRadius: '12px',
                     fontSize: '12px',
+                    boxShadow: '0 10px 25px -5px rgba(0,0,0,0.4)',
+                    padding: '8px 12px',
                   }}
+                  itemStyle={{ color: tokens.textPrimary }}
                 />
                 <Legend wrapperStyle={{ fontSize: '12px' }} />
-                <Bar dataKey="Before" name="Before SmartStock" fill="#e11d48" radius={[6, 6, 0, 0]} />
-                <Bar dataKey="After" name="With Automated Buffers" fill="#059669" radius={[6, 6, 0, 0]} />
+                <Bar dataKey="Before" name="Before SmartStock" fill={tokens.status.critical} radius={[6, 6, 0, 0]} />
+                <Bar dataKey="After" name="With Automated Buffers" fill={tokens.status.healthy} radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>

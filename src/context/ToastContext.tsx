@@ -62,12 +62,12 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   return (
     <ToastContext.Provider value={{ showToast }}>
       {children}
-      {/* Toast viewport */}
-      <div className="fixed bottom-4 right-4 z-50 flex flex-col space-y-2 max-w-sm w-full pointer-events-none px-3 sm:px-0">
+      {/* Toast viewport - anchored top-right to prevent overlap with floating theme toggle */}
+      <div className="fixed top-4 right-4 z-50 flex flex-col space-y-2 max-w-sm w-full pointer-events-none px-3 sm:px-0">
         {toasts.map((t) => (
           <div
             key={t.id}
-            className={`pointer-events-auto flex items-start space-x-2.5 p-3.5 rounded-xl border text-xs font-medium transition-all transform animate-in slide-in-from-bottom-2 duration-200 ${getToastStyle(
+            className={`pointer-events-auto flex items-start space-x-2.5 p-3.5 rounded-xl border text-xs font-medium transition-all transform animate-in slide-in-from-top-2 duration-200 ${getToastStyle(
               t.type
             )}`}
           >
@@ -75,7 +75,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             <p className="flex-1 leading-snug text-slate-700">{t.message}</p>
             <button
               onClick={() => removeToast(t.id)}
-              className="text-slate-400 hover:text-slate-600 p-0.5"
+              className="text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer"
             >
               <X className="w-3.5 h-3.5" />
             </button>

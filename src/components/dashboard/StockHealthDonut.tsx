@@ -2,12 +2,15 @@ import React from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { Product } from '../../types';
 import { getStockStatus } from '../../services/reorderEngine';
+import { useTheme } from '../../context/ThemeContext';
 
 interface StockHealthDonutProps {
   products: Product[];
 }
 
 export const StockHealthDonut: React.FC<StockHealthDonutProps> = ({ products }) => {
+  const { tokens } = useTheme();
+
   const counts = {
     Healthy: 0,
     'Low Stock': 0,
@@ -21,17 +24,17 @@ export const StockHealthDonut: React.FC<StockHealthDonutProps> = ({ products }) 
   });
 
   const data = [
-    { name: 'Healthy', value: counts['Healthy'], color: '#059669' },
-    { name: 'Low Stock', value: counts['Low Stock'], color: '#d97706' },
-    { name: 'Critical', value: counts['Critical'], color: '#e11d48' },
-    { name: 'Out of Stock', value: counts['Out of Stock'], color: '#475569' },
+    { name: 'Healthy', value: counts['Healthy'], color: tokens.status.healthy },
+    { name: 'Low Stock', value: counts['Low Stock'], color: tokens.status.low },
+    { name: 'Critical', value: counts['Critical'], color: tokens.status.critical },
+    { name: 'Out of Stock', value: counts['Out of Stock'], color: tokens.status.out },
   ].filter((item) => item.value > 0);
 
   const total = products.length;
   const healthyPercentage = Math.round((counts.Healthy / (total || 1)) * 100);
 
   return (
-    <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-card flex flex-col justify-between">
+    <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-card flex flex-col justify-between transition-colors">
       <div className="flex items-center justify-between mb-2">
         <div>
           <h3 className="text-sm font-bold text-slate-900 tracking-tight">Stock Buffer Health</h3>
@@ -63,14 +66,15 @@ export const StockHealthDonut: React.FC<StockHealthDonutProps> = ({ products }) 
                 name,
               ]}
               contentStyle={{
-                backgroundColor: 'rgba(15, 23, 42, 0.95)',
-                borderColor: 'rgba(51, 65, 85, 0.8)',
-                color: '#fff',
+                backgroundColor: tokens.chart.tooltipBg,
+                borderColor: tokens.chart.tooltipBorder,
+                color: tokens.textPrimary,
                 borderRadius: '12px',
                 fontSize: '12px',
-                boxShadow: '0 10px 25px -5px rgba(0,0,0,0.3)',
+                boxShadow: '0 10px 25px -5px rgba(0,0,0,0.4)',
                 padding: '8px 12px',
               }}
+              itemStyle={{ color: tokens.textPrimary }}
             />
           </PieChart>
         </ResponsiveContainer>
@@ -90,7 +94,7 @@ export const StockHealthDonut: React.FC<StockHealthDonutProps> = ({ products }) 
       <div className="grid grid-cols-2 gap-2 pt-4 border-t border-slate-100 text-xs">
         <div className="flex items-center justify-between p-2 rounded-xl bg-emerald-50/60 border border-emerald-200/40">
           <span className="flex items-center space-x-1.5 text-slate-700 font-semibold">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+            <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: tokens.status.healthy }}></span>
             <span>Healthy</span>
           </span>
           <span className="font-extrabold text-emerald-800 font-mono tabular-nums">
@@ -100,7 +104,7 @@ export const StockHealthDonut: React.FC<StockHealthDonutProps> = ({ products }) 
 
         <div className="flex items-center justify-between p-2 rounded-xl bg-amber-50/60 border border-amber-200/40">
           <span className="flex items-center space-x-1.5 text-slate-700 font-semibold">
-            <span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+            <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: tokens.status.low }}></span>
             <span>Low Stock</span>
           </span>
           <span className="font-extrabold text-amber-800 font-mono tabular-nums">
@@ -110,7 +114,7 @@ export const StockHealthDonut: React.FC<StockHealthDonutProps> = ({ products }) 
 
         <div className="flex items-center justify-between p-2 rounded-xl bg-rose-50/60 border border-rose-200/40">
           <span className="flex items-center space-x-1.5 text-slate-700 font-semibold">
-            <span className="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
+            <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: tokens.status.critical }}></span>
             <span>Critical</span>
           </span>
           <span className="font-extrabold text-rose-800 font-mono tabular-nums">
@@ -120,7 +124,7 @@ export const StockHealthDonut: React.FC<StockHealthDonutProps> = ({ products }) 
 
         <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-200/50">
           <span className="flex items-center space-x-1.5 text-slate-600 font-semibold">
-            <span className="w-2.5 h-2.5 rounded-full bg-slate-400"></span>
+            <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: tokens.status.out }}></span>
             <span>Out of Stock</span>
           </span>
           <span className="font-extrabold text-slate-700 font-mono tabular-nums">
@@ -131,3 +135,4 @@ export const StockHealthDonut: React.FC<StockHealthDonutProps> = ({ products }) 
     </div>
   );
 };
+

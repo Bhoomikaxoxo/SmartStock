@@ -11,6 +11,7 @@ import {
 } from 'recharts';
 import { Product, SalesRecord } from '../../types';
 import { getTopSellingProducts, formatCurrencyINR } from '../../services/reorderEngine';
+import { useTheme } from '../../context/ThemeContext';
 import { Award, Flame } from 'lucide-react';
 
 interface TopSellersChartProps {
@@ -19,12 +20,16 @@ interface TopSellersChartProps {
 }
 
 export const TopSellersChart: React.FC<TopSellersChartProps> = ({ products, sales }) => {
+  const { theme, tokens } = useTheme();
   const [timeframe, setTimeframe] = useState<30 | 60 | 90>(30);
 
   const topProducts = getTopSellingProducts(products, sales, timeframe).slice(0, 6);
 
-  // Colors for the bars
-  const colors = ['#f59e0b', '#d97706', '#b45309', '#10b981', '#059669', '#3b82f6'];
+  // Palette tuned for contrast in both modes
+  const colors =
+    theme === 'dark'
+      ? ['#FBBF24', '#F59E0B', '#E0954A', '#34D399', '#10B981', '#60A5FA']
+      : ['#f59e0b', '#d97706', '#b45309', '#10b981', '#059669', '#3b82f6'];
 
   return (
     <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs flex flex-col justify-between">
@@ -75,12 +80,12 @@ export const TopSellersChart: React.FC<TopSellersChartProps> = ({ products, sale
       <div className="h-64 w-full">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={topProducts} margin={{ top: 10, right: 10, left: -20, bottom: 25 }}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={tokens.chart.grid} />
             <XAxis
               dataKey="name"
               tickLine={false}
               axisLine={false}
-              tick={{ fontSize: 11, fill: '#64748b' }}
+              tick={{ fontSize: 11, fill: tokens.chart.axisText }}
               interval={0}
               tickFormatter={(val) => (val.length > 12 ? `${val.substring(0, 10)}…` : val)}
               angle={-15}
@@ -89,7 +94,7 @@ export const TopSellersChart: React.FC<TopSellersChartProps> = ({ products, sale
             <YAxis
               tickLine={false}
               axisLine={false}
-              tick={{ fontSize: 11, fill: '#94a3b8' }}
+              tick={{ fontSize: 11, fill: tokens.chart.axisText }}
             />
             <Tooltip
               formatter={(value: any, name: any, item: any) => [
@@ -97,12 +102,15 @@ export const TopSellersChart: React.FC<TopSellersChartProps> = ({ products, sale
                 'Units Sold',
               ]}
               contentStyle={{
-                backgroundColor: '#0f172a',
-                borderColor: '#1e293b',
-                color: '#fff',
-                borderRadius: '8px',
+                backgroundColor: tokens.chart.tooltipBg,
+                borderColor: tokens.chart.tooltipBorder,
+                color: tokens.textPrimary,
+                borderRadius: '12px',
                 fontSize: '12px',
+                boxShadow: '0 10px 25px -5px rgba(0,0,0,0.4)',
+                padding: '8px 12px',
               }}
+              itemStyle={{ color: tokens.textPrimary }}
             />
             <Bar dataKey="unitsSold" radius={[6, 6, 0, 0]}>
               {topProducts.map((entry, index) => (

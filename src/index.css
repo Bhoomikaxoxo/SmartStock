@@ -2,18 +2,116 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  /* Core Surfaces & Palette (Warm Parchment) */
+  --bg-base: #FAF6EE;
+  --bg-surface: #FFFFFF;
+  --bg-elevated: #F5EFE3;
+  --bg-subtle: #F6F1E7;
+  --text-primary: #2B241C;
+  --text-secondary: #8B7F6B;
+  --text-muted: #A0937D;
+  --border-default: #E4D9C3;
+  --border-subtle: #EDE4D3;
+  --accent: #C97A2B;
+  --accent-hover: #B46C24;
+  --accent-surface: rgba(201, 122, 43, 0.10);
+
+  /* Status Colors (Light Mode) */
+  --status-healthy: #059669;
+  --status-healthy-bg: #ecfdf5;
+  --status-healthy-border: rgba(5, 150, 105, 0.25);
+
+  --status-low: #d97706;
+  --status-low-bg: #fffbeb;
+  --status-low-border: rgba(217, 119, 6, 0.25);
+
+  --status-critical: #e11d48;
+  --status-critical-bg: #fff1f2;
+  --status-critical-border: rgba(225, 29, 72, 0.25);
+
+  --status-out-of-stock: #475569;
+  --status-out-of-stock-bg: #f1f5f9;
+  --status-out-of-stock-border: rgba(71, 85, 105, 0.25);
+
+  /* Glass Surfaces */
+  --glass-header-bg: rgba(255, 255, 255, 0.88);
+  --glass-nav-bg: rgba(255, 255, 255, 0.82);
+  --glass-card-bg: rgba(255, 255, 255, 0.94);
+  --glass-modal-bg: rgba(255, 255, 255, 0.98);
+  --glass-border: rgba(228, 217, 195, 0.85);
+
+  --scrollbar-thumb: #D5CABA;
+  --scrollbar-thumb-hover: #B8A892;
+}
+
+[data-theme="dark"] {
+  /* Core Surfaces & Palette (Deep Espresso) */
+  --bg-base: #1C1712;
+  --bg-surface: #26201A;
+  --bg-elevated: #312A22;
+  --bg-subtle: #221C16;
+  --text-primary: #F1EAD9;
+  --text-secondary: #A99C82;
+  --text-muted: #857864;
+  --border-default: #3A3128;
+  --border-subtle: #302820;
+  --accent: #E0954A;
+  --accent-hover: #EBB06E;
+  --accent-surface: rgba(224, 149, 74, 0.14);
+
+  /* Status Colors (Dark Mode: hold hue, lift lightness for contrast) */
+  --status-healthy: #34D399;
+  --status-healthy-bg: rgba(52, 211, 153, 0.12);
+  --status-healthy-border: rgba(52, 211, 153, 0.28);
+
+  --status-low: #FBBF24;
+  --status-low-bg: rgba(251, 191, 36, 0.12);
+  --status-low-border: rgba(251, 191, 36, 0.28);
+
+  --status-critical: #FB7185;
+  --status-critical-bg: rgba(251, 113, 133, 0.12);
+  --status-critical-border: rgba(251, 113, 133, 0.28);
+
+  --status-out-of-stock: #94A3B8;
+  --status-out-of-stock-bg: rgba(148, 163, 184, 0.12);
+  --status-out-of-stock-border: rgba(148, 163, 184, 0.28);
+
+  /* Glass Surfaces */
+  --glass-header-bg: rgba(38, 32, 26, 0.90);
+  --glass-nav-bg: rgba(34, 28, 22, 0.86);
+  --glass-card-bg: rgba(38, 32, 26, 0.94);
+  --glass-modal-bg: rgba(38, 32, 26, 0.98);
+  --glass-border: rgba(58, 49, 40, 0.92);
+
+  --scrollbar-thumb: #3A3128;
+  --scrollbar-thumb-hover: #52463A;
+}
+
 @layer base {
   body {
-    @apply bg-slate-50 text-slate-900 antialiased font-sans min-h-screen selection:bg-amber-100 selection:text-amber-900;
+    background-color: var(--bg-base);
+    color: var(--text-primary);
+    font-family: 'Plus Jakarta Sans', Inter, system-ui, -apple-system, sans-serif;
     margin: 0;
     padding: 0;
+    min-height: 100vh;
+    transition: background-color 0.25s ease, color 0.25s ease;
     background-image: 
-      radial-gradient(#cbd5e1 0.8px, transparent 0.8px),
-      radial-gradient(at 0% 0%, rgba(254, 243, 199, 0.45) 0px, transparent 55%),
-      radial-gradient(at 100% 0%, rgba(241, 245, 249, 0.85) 0px, transparent 50%),
-      radial-gradient(at 50% 100%, rgba(254, 243, 199, 0.25) 0px, transparent 55%);
+      radial-gradient(#D5CABA 0.85px, transparent 0.85px),
+      radial-gradient(at 0% 0%, rgba(201, 122, 43, 0.08) 0px, transparent 55%),
+      radial-gradient(at 100% 0%, rgba(245, 239, 227, 0.85) 0px, transparent 50%),
+      radial-gradient(at 50% 100%, rgba(201, 122, 43, 0.05) 0px, transparent 55%);
     background-size: 24px 24px, 100% 100%, 100% 100%, 100% 100%;
     background-attachment: fixed;
+  }
+
+  [data-theme="dark"] body {
+    background-image: 
+      radial-gradient(#3A3128 0.85px, transparent 0.85px),
+      radial-gradient(at 0% 0%, rgba(224, 149, 74, 0.08) 0px, transparent 55%),
+      radial-gradient(at 100% 0%, rgba(38, 32, 26, 0.9) 0px, transparent 50%),
+      radial-gradient(at 50% 100%, rgba(224, 149, 74, 0.04) 0px, transparent 55%);
   }
 }
 
@@ -26,43 +124,43 @@
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: var(--scrollbar-thumb);
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: var(--scrollbar-thumb-hover);
 }
 
-/* Premium Glassmorphism & Surface System */
+/* Glassmorphism & Surface System */
 .glass-header {
-  background: rgba(255, 255, 255, 0.86);
+  background: var(--glass-header-bg);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
-  border-bottom: 1px solid rgba(226, 232, 240, 0.85);
-  box-shadow: 0 1px 2px 0 rgba(15, 23, 42, 0.02);
+  border-bottom: 1px solid var(--glass-border);
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
 }
 
 .glass-nav {
-  background: rgba(255, 255, 255, 0.78);
+  background: var(--glass-nav-bg);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
-  border-bottom: 1px solid rgba(226, 232, 240, 0.75);
+  border-bottom: 1px solid var(--glass-border);
 }
 
 .glass-card {
-  background: rgba(255, 255, 255, 0.92);
+  background: var(--glass-card-bg);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
-  border: 1px solid rgba(226, 232, 240, 0.9);
-  box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.03), 0 1px 2px -1px rgba(15, 23, 42, 0.03), inset 0 1px 0 0 rgba(255, 255, 255, 0.95);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
 }
 
 .glass-modal {
-  background: rgba(255, 255, 255, 0.98);
+  background: var(--glass-modal-bg);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(226, 232, 240, 0.95);
-  box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.15), 0 0 0 1px rgba(15, 23, 42, 0.04);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.05);
 }
 
 /* Card hover elevation */
@@ -71,8 +169,8 @@
 }
 .card-hover:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 28px -6px rgba(15, 23, 42, 0.07), 0 4px 12px -2px rgba(15, 23, 42, 0.03);
-  border-color: rgba(203, 213, 225, 0.95);
+  box-shadow: 0 12px 28px -6px rgba(0, 0, 0, 0.12), 0 4px 12px -2px rgba(0, 0, 0, 0.06);
+  border-color: var(--accent);
 }
 
 /* Keyframe animations */
@@ -119,9 +217,189 @@
   animation: pulse-dot 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-/* High-precision tabular data */
 .tabular-nums {
   font-variant-numeric: tabular-nums;
+}
+
+/* =========================================================================
+   DARK MODE TOKEN SWAP ENGINE
+   Automatically maps all surfaces, text, borders, inputs, and 4-state statuses
+   to purpose-matched dark tokens without per-component duplication.
+   ========================================================================= */
+
+[data-theme="dark"] .bg-white {
+  background-color: var(--bg-surface) !important;
+}
+
+[data-theme="dark"] .bg-slate-50,
+[data-theme="dark"] .bg-slate-50\/80,
+[data-theme="dark"] .bg-slate-50\/60,
+[data-theme="dark"] .bg-slate-50\/70 {
+  background-color: var(--bg-subtle) !important;
+}
+
+[data-theme="dark"] .bg-slate-100,
+[data-theme="dark"] .bg-slate-100\/90,
+[data-theme="dark"] .bg-slate-100\/80 {
+  background-color: var(--bg-elevated) !important;
+}
+
+[data-theme="dark"] .bg-slate-200 {
+  background-color: var(--border-default) !important;
+}
+
+[data-theme="dark"] .hover\:bg-slate-50:hover,
+[data-theme="dark"] .hover\:bg-slate-100:hover {
+  background-color: var(--bg-elevated) !important;
+}
+
+/* Text Hierarchy */
+[data-theme="dark"] .text-slate-900,
+[data-theme="dark"] .text-slate-800 {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .text-slate-700,
+[data-theme="dark"] .text-slate-600,
+[data-theme="dark"] .text-slate-500 {
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .text-slate-400 {
+  color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] .text-slate-300 {
+  color: #52463A !important;
+}
+
+/* Borders & Dividers */
+[data-theme="dark"] .border-slate-100,
+[data-theme="dark"] .border-slate-200,
+[data-theme="dark"] .border-slate-200\/90,
+[data-theme="dark"] .border-slate-200\/80,
+[data-theme="dark"] .border-slate-200\/70,
+[data-theme="dark"] .border-slate-200\/60,
+[data-theme="dark"] .border-slate-200\/50,
+[data-theme="dark"] .border-slate-300 {
+  border-color: var(--border-default) !important;
+}
+
+[data-theme="dark"] .divide-slate-100 > :not([hidden]) ~ :not([hidden]),
+[data-theme="dark"] .divide-slate-200 > :not([hidden]) ~ :not([hidden]) {
+  border-color: var(--border-default) !important;
+}
+
+/* Form Inputs, Selects, and Textareas */
+[data-theme="dark"] input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+[data-theme="dark"] select,
+[data-theme="dark"] textarea {
+  background-color: var(--bg-elevated) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-default) !important;
+}
+
+[data-theme="dark"] input::placeholder,
+[data-theme="dark"] textarea::placeholder {
+  color: var(--text-muted) !important;
+}
+
+/* Dark action buttons and pills */
+[data-theme="dark"] .bg-slate-900 {
+  background-color: var(--bg-elevated) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-default);
+}
+[data-theme="dark"] .hover\:bg-slate-800:hover {
+  background-color: #3D342B !important;
+}
+
+/* ---------------------------------------------------------
+   4-STATE STATUS PALETTE: Hold Hue, Lift Lightness
+   --------------------------------------------------------- */
+
+/* 1. HEALTHY: Emerald */
+[data-theme="dark"] .bg-emerald-50,
+[data-theme="dark"] .bg-emerald-50\/80,
+[data-theme="dark"] .bg-emerald-50\/70,
+[data-theme="dark"] .bg-emerald-50\/60 {
+  background-color: var(--status-healthy-bg) !important;
+}
+[data-theme="dark"] .text-emerald-600,
+[data-theme="dark"] .text-emerald-700,
+[data-theme="dark"] .text-emerald-800,
+[data-theme="dark"] .text-emerald-900,
+[data-theme="dark"] .text-emerald-950 {
+  color: var(--status-healthy) !important;
+}
+[data-theme="dark"] .border-emerald-200,
+[data-theme="dark"] .border-emerald-200\/90,
+[data-theme="dark"] .border-emerald-200\/80,
+[data-theme="dark"] .border-emerald-200\/70,
+[data-theme="dark"] .border-emerald-200\/60,
+[data-theme="dark"] .border-emerald-200\/40 {
+  border-color: var(--status-healthy-border) !important;
+}
+
+/* 2. LOW STOCK: Amber */
+[data-theme="dark"] .bg-amber-50,
+[data-theme="dark"] .bg-amber-50\/80,
+[data-theme="dark"] .bg-amber-50\/70,
+[data-theme="dark"] .bg-amber-50\/60 {
+  background-color: var(--status-low-bg) !important;
+}
+[data-theme="dark"] .text-amber-600,
+[data-theme="dark"] .text-amber-700,
+[data-theme="dark"] .text-amber-800,
+[data-theme="dark"] .text-amber-900,
+[data-theme="dark"] .text-amber-950 {
+  color: var(--status-low) !important;
+}
+[data-theme="dark"] .border-amber-200,
+[data-theme="dark"] .border-amber-200\/90,
+[data-theme="dark"] .border-amber-200\/80,
+[data-theme="dark"] .border-amber-200\/70,
+[data-theme="dark"] .border-amber-200\/60,
+[data-theme="dark"] .border-amber-200\/40 {
+  border-color: var(--status-low-border) !important;
+}
+
+/* 3. CRITICAL: Rose */
+[data-theme="dark"] .bg-rose-50,
+[data-theme="dark"] .bg-rose-50\/80,
+[data-theme="dark"] .bg-rose-50\/70,
+[data-theme="dark"] .bg-rose-50\/60 {
+  background-color: var(--status-critical-bg) !important;
+}
+[data-theme="dark"] .text-rose-600,
+[data-theme="dark"] .text-rose-700,
+[data-theme="dark"] .text-rose-800,
+[data-theme="dark"] .text-rose-900,
+[data-theme="dark"] .text-rose-950 {
+  color: var(--status-critical) !important;
+}
+[data-theme="dark"] .border-rose-200,
+[data-theme="dark"] .border-rose-200\/90,
+[data-theme="dark"] .border-rose-200\/80,
+[data-theme="dark"] .border-rose-200\/70,
+[data-theme="dark"] .border-rose-200\/60,
+[data-theme="dark"] .border-rose-200\/40 {
+  border-color: var(--status-critical-border) !important;
+}
+
+/* 4. OUT OF STOCK: Slate */
+[data-theme="dark"] .bg-slate-100\/90,
+[data-theme="dark"] .bg-slate-200\/50,
+[data-theme="dark"] .bg-slate-200\/40 {
+  background-color: var(--status-out-of-stock-bg) !important;
+}
+[data-theme="dark"] .text-slate-600,
+[data-theme="dark"] .text-slate-700 {
+  color: var(--status-out-of-stock) !important;
+}
+[data-theme="dark"] .border-slate-200\/50,
+[data-theme="dark"] .border-slate-200\/60 {
+  border-color: var(--status-out-of-stock-border) !important;
 }
 
 /* Clean print styles for printable PO */
@@ -129,11 +407,14 @@
   body {
     background: #ffffff !important;
     background-image: none !important;
+    color: #000000 !important;
   }
-  header, nav, .print\:hidden {
+  header, nav, #smartstock-theme-toggle, .print\:hidden {
     display: none !important;
   }
   #printable-po-voucher {
     padding: 0 !important;
+    background: #ffffff !important;
+    color: #000000 !important;
   }
 }

@@ -1,4 +1,6 @@
 import React from 'react';
+import { ThemeProvider } from './context/ThemeContext';
+import { ThemeToggle } from './components/common/ThemeToggle';
 import { ToastProvider, useToast } from './context/ToastContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { AppProvider, useApp } from './context/AppContext';
@@ -17,7 +19,6 @@ import { Lock, ArrowLeft } from 'lucide-react';
 const MainLayout: React.FC = () => {
   const { activeTab, setActiveTab } = useApp();
   const { currentUser } = useAuth();
-  const { showToast } = useToast();
 
   const userRole = currentUser?.role || 'staff';
 
@@ -147,9 +148,12 @@ const AuthenticatedApp: React.FC = () => {
 
 export function App() {
   return (
-    <ToastProvider>
-      <AuthProviderWrapper />
-    </ToastProvider>
+    <ThemeProvider>
+      <ToastProvider>
+        <AuthProviderWrapper />
+        <ThemeToggle />
+      </ToastProvider>
+    </ThemeProvider>
   );
 }
 

@@ -12,8 +12,9 @@ import {
 } from 'recharts';
 import { Product, SalesRecord } from '../../types';
 import { useApp } from '../../context/AppContext';
+import { useTheme } from '../../context/ThemeContext';
 import { getMonthlyDemandTrend } from '../../services/reorderEngine';
-import { TrendingUp, Sparkles, AlertCircle, ArrowUpRight, BarChart3 } from 'lucide-react';
+import { TrendingUp, ArrowUpRight } from 'lucide-react';
 
 interface MonthlyDemandTrendProps {
   products: Product[];
@@ -22,6 +23,7 @@ interface MonthlyDemandTrendProps {
 
 export const MonthlyDemandTrend: React.FC<MonthlyDemandTrendProps> = ({ products, sales }) => {
   const { surgeMultiplier } = useApp();
+  const { tokens } = useTheme();
   const [selectedProductId, setSelectedProductId] = useState<string>(
     products.find((p) => p.id === 'prod-flour')?.id || products[0]?.id || ''
   );
@@ -134,37 +136,38 @@ export const MonthlyDemandTrend: React.FC<MonthlyDemandTrendProps> = ({ products
           <AreaChart data={trendData.chartData} margin={{ top: 10, right: 20, left: -10, bottom: 0 }}>
             <defs>
               <linearGradient id="actualGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#d97706" stopOpacity={0.3} />
-                <stop offset="95%" stopColor="#d97706" stopOpacity={0.0} />
+                <stop offset="5%" stopColor={tokens.status.low} stopOpacity={0.35} />
+                <stop offset="95%" stopColor={tokens.status.low} stopOpacity={0.0} />
               </linearGradient>
               <linearGradient id="forecastGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#059669" stopOpacity={0.3} />
-                <stop offset="95%" stopColor="#059669" stopOpacity={0.0} />
+                <stop offset="5%" stopColor={tokens.status.healthy} stopOpacity={0.35} />
+                <stop offset="95%" stopColor={tokens.status.healthy} stopOpacity={0.0} />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={tokens.chart.grid} />
             <XAxis
               dataKey="date"
-              tick={{ fontSize: 11, fill: '#64748b' }}
+              tick={{ fontSize: 11, fill: tokens.chart.axisText }}
               tickLine={false}
-              axisLine={{ stroke: '#e2e8f0' }}
+              axisLine={{ stroke: tokens.borderDefault }}
             />
             <YAxis
-              tick={{ fontSize: 11, fill: '#64748b' }}
+              tick={{ fontSize: 11, fill: tokens.chart.axisText }}
               tickLine={false}
-              axisLine={{ stroke: '#e2e8f0' }}
+              axisLine={{ stroke: tokens.borderDefault }}
               unit={` ${currentProduct?.unit}`}
             />
             <Tooltip
               contentStyle={{
-                backgroundColor: 'rgba(15, 23, 42, 0.95)',
-                borderColor: 'rgba(51, 65, 85, 0.8)',
-                color: '#fff',
+                backgroundColor: tokens.chart.tooltipBg,
+                borderColor: tokens.chart.tooltipBorder,
+                color: tokens.textPrimary,
                 borderRadius: '12px',
                 fontSize: '12px',
-                boxShadow: '0 10px 25px -5px rgba(0,0,0,0.3)',
+                boxShadow: '0 10px 25px -5px rgba(0,0,0,0.4)',
                 padding: '8px 12px',
               }}
+              itemStyle={{ color: tokens.textPrimary }}
             />
             <Legend
               wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }}
@@ -173,7 +176,7 @@ export const MonthlyDemandTrend: React.FC<MonthlyDemandTrendProps> = ({ products
               type="monotone"
               dataKey="actual"
               name="Historical Daily Sales"
-              stroke="#d97706"
+              stroke={tokens.status.low}
               strokeWidth={2.5}
               fillOpacity={1}
               fill="url(#actualGradient)"
@@ -182,7 +185,7 @@ export const MonthlyDemandTrend: React.FC<MonthlyDemandTrendProps> = ({ products
               type="monotone"
               dataKey="forecast"
               name="30-Day Trend Fit"
-              stroke="#059669"
+              stroke={tokens.status.healthy}
               strokeWidth={2.5}
               strokeDasharray="4 4"
               fillOpacity={1}
