@@ -38,6 +38,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   login: (email: string, pass: string) => Promise<{ success: boolean; error?: string }>;
   logout: (reason?: string) => void;
+  switchUser: (userId: string) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -124,6 +125,26 @@ export const AuthProvider: React.FC<{
     return { success: true };
   };
 
+  const switchUser = useCallback((userId: string) => {
+    const matched = SEEDED_USERS.find((u) => u.id === userId);
+    if (matched) {
+      const user: User = {
+        id: matched.id,
+        name: matched.name,
+        email: matched.email,
+        role: matched.role,
+        avatarInitial: matched.avatarInitial,
+      };
+      const session: AuthSession = {
+        user,
+        token: `mock-token-${Date.now()}`,
+        expiresAt: Date.now() + SESSION_DURATION_MS,
+      };
+      localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
+      setCurrentUser(user);
+    }
+  }, []);
+
   return (
     <AuthContext.Provider
       value={{
@@ -131,6 +152,7 @@ export const AuthProvider: React.FC<{
         isAuthenticated: !!currentUser,
         login,
         logout,
+        switchUser,
       }}
     >
       {children}

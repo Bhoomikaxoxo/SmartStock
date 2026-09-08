@@ -10,6 +10,8 @@ import {
   CheckCircle2,
   Calendar,
   Search,
+  X,
+  BellRing,
 } from 'lucide-react';
 
 export const AlertsPage: React.FC = () => {
@@ -69,7 +71,7 @@ export const AlertsPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight flex items-center space-x-2.5">
-            <AlertOctagon className="w-6 h-6 text-rose-600" />
+            <AlertOctagon className="w-6 h-6 text-rose-600 stroke-[2.2]" />
             <span>Priority Reorder & Threshold Alerts</span>
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
@@ -79,24 +81,29 @@ export const AlertsPage: React.FC = () => {
       </div>
 
       {/* Severity Counters Row */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
         <button
           onClick={() => {
             setSeverityFilter('critical');
             setStatusFilter('active');
           }}
-          className={`p-3.5 rounded-xl border text-left transition cursor-pointer ${
+          className={`p-4 rounded-2xl border text-left transition cursor-pointer relative overflow-hidden shadow-card hover:shadow-card-hover ${
             severityFilter === 'critical'
-              ? 'bg-rose-50/60 border-rose-300 ring-1 ring-rose-300'
+              ? 'bg-rose-50/70 border-rose-300 ring-2 ring-rose-400'
               : 'bg-white border-slate-200/80 hover:border-slate-300'
           }`}
         >
+          <div className="absolute top-0 left-0 right-0 h-1 bg-rose-500" />
           <div className="flex items-center justify-between">
-            <span className="font-semibold text-rose-800">Critical Priority</span>
+            <span className="font-bold text-rose-900 uppercase tracking-wider text-[11px]">
+              Critical Priority
+            </span>
             <AlertOctagon className="w-4 h-4 text-rose-600" />
           </div>
-          <div className="text-2xl font-black text-rose-600 font-mono mt-1">{criticalCount}</div>
-          <span className="text-[11px] text-slate-400">Below emergency buffer</span>
+          <div className="text-2xl sm:text-3xl font-black text-rose-600 font-mono tabular-nums mt-1.5">
+            {criticalCount}
+          </div>
+          <span className="text-[11px] text-slate-400 font-medium">Below emergency buffer</span>
         </button>
 
         <button
@@ -104,18 +111,23 @@ export const AlertsPage: React.FC = () => {
             setSeverityFilter('warning');
             setStatusFilter('active');
           }}
-          className={`p-3.5 rounded-xl border text-left transition cursor-pointer ${
+          className={`p-4 rounded-2xl border text-left transition cursor-pointer relative overflow-hidden shadow-card hover:shadow-card-hover ${
             severityFilter === 'warning'
-              ? 'bg-amber-50/60 border-amber-300 ring-1 ring-amber-300'
+              ? 'bg-amber-50/70 border-amber-300 ring-2 ring-amber-400'
               : 'bg-white border-slate-200/80 hover:border-slate-300'
           }`}
         >
+          <div className="absolute top-0 left-0 right-0 h-1 bg-amber-500" />
           <div className="flex items-center justify-between">
-            <span className="font-semibold text-amber-800">Reorder Warnings</span>
+            <span className="font-bold text-amber-900 uppercase tracking-wider text-[11px]">
+              Reorder Warnings
+            </span>
             <AlertTriangle className="w-4 h-4 text-amber-600" />
           </div>
-          <div className="text-2xl font-black text-amber-600 font-mono mt-1">{warningCount}</div>
-          <span className="text-[11px] text-slate-400">Runout in ≤ lead time</span>
+          <div className="text-2xl sm:text-3xl font-black text-amber-600 font-mono tabular-nums mt-1.5">
+            {warningCount}
+          </div>
+          <span className="text-[11px] text-slate-400 font-medium">Runout in ≤ lead time</span>
         </button>
 
         <button
@@ -123,18 +135,23 @@ export const AlertsPage: React.FC = () => {
             setSeverityFilter('expiring');
             setStatusFilter('active');
           }}
-          className={`p-3.5 rounded-xl border text-left transition cursor-pointer ${
+          className={`p-4 rounded-2xl border text-left transition cursor-pointer relative overflow-hidden shadow-card hover:shadow-card-hover ${
             severityFilter === 'expiring'
-              ? 'bg-slate-100 border-slate-400 ring-1 ring-slate-400'
+              ? 'bg-slate-100 border-slate-400 ring-2 ring-slate-400'
               : 'bg-white border-slate-200/80 hover:border-slate-300'
           }`}
         >
+          <div className="absolute top-0 left-0 right-0 h-1 bg-slate-500" />
           <div className="flex items-center justify-between">
-            <span className="font-semibold text-slate-800">Expiring Batches</span>
+            <span className="font-bold text-slate-800 uppercase tracking-wider text-[11px]">
+              Expiring Batches
+            </span>
             <Calendar className="w-4 h-4 text-slate-600" />
           </div>
-          <div className="text-2xl font-black text-slate-800 font-mono mt-1">{expiryCount}</div>
-          <span className="text-[11px] text-slate-400">Shelf life ≤ 7 days</span>
+          <div className="text-2xl sm:text-3xl font-black text-slate-800 font-mono tabular-nums mt-1.5">
+            {expiryCount}
+          </div>
+          <span className="text-[11px] text-slate-400 font-medium">Shelf life ≤ 7 days</span>
         </button>
 
         <button
@@ -142,55 +159,68 @@ export const AlertsPage: React.FC = () => {
             setSeverityFilter('info');
             setStatusFilter('active');
           }}
-          className={`p-3.5 rounded-xl border text-left transition cursor-pointer ${
+          className={`p-4 rounded-2xl border text-left transition cursor-pointer relative overflow-hidden shadow-card hover:shadow-card-hover ${
             severityFilter === 'info'
-              ? 'bg-blue-50/60 border-blue-300 ring-1 ring-blue-300'
+              ? 'bg-blue-50/70 border-blue-300 ring-2 ring-blue-400'
               : 'bg-white border-slate-200/80 hover:border-slate-300'
           }`}
         >
+          <div className="absolute top-0 left-0 right-0 h-1 bg-blue-500" />
           <div className="flex items-center justify-between">
-            <span className="font-semibold text-blue-800">Planning Info</span>
+            <span className="font-bold text-blue-900 uppercase tracking-wider text-[11px]">
+              Buffer Advisories
+            </span>
             <Info className="w-4 h-4 text-blue-600" />
           </div>
-          <div className="text-2xl font-black text-blue-600 font-mono mt-1">{infoCount}</div>
-          <span className="text-[11px] text-slate-400">Approaching buffer point</span>
+          <div className="text-2xl sm:text-3xl font-black text-blue-600 font-mono tabular-nums mt-1.5">
+            {infoCount}
+          </div>
+          <span className="text-[11px] text-slate-400 font-medium">Approaching buffer point</span>
         </button>
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="bg-white rounded-xl p-4 border border-slate-200/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+      <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-card flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
         <div className="relative flex-1">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5 pointer-events-none" />
+          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-2.5 pointer-events-none" />
           <input
             type="text"
             placeholder="Filter alerts by ingredient, reason, or message..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500 text-slate-900"
+            className="w-full pl-9 pr-8 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500 text-slate-900 font-medium"
           />
+          {searchTerm && (
+            <button
+              onClick={() => setSearchTerm('')}
+              className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
 
-        <div className="flex items-center space-x-1 bg-slate-100 p-1 rounded-xl shrink-0 self-start sm:self-auto">
+        <div className="flex items-center space-x-1 bg-slate-100 p-1 rounded-xl shrink-0 self-start sm:self-auto border border-slate-200/60">
           <button
             onClick={() => setStatusFilter('active')}
-            className={`px-3 py-1 font-semibold rounded-lg transition cursor-pointer ${
-              statusFilter === 'active' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500'
+            className={`px-3 py-1 font-bold rounded-lg transition cursor-pointer ${
+              statusFilter === 'active' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-800'
             }`}
           >
             Active ({activeAlerts.length})
           </button>
           <button
             onClick={() => setStatusFilter('resolved')}
-            className={`px-3 py-1 font-semibold rounded-lg transition cursor-pointer ${
-              statusFilter === 'resolved' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500'
+            className={`px-3 py-1 font-bold rounded-lg transition cursor-pointer ${
+              statusFilter === 'resolved' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-800'
             }`}
           >
             Resolved ({alerts.filter((a) => a.resolved).length})
           </button>
           <button
             onClick={() => setStatusFilter('all')}
-            className={`px-3 py-1 font-semibold rounded-lg transition cursor-pointer ${
-              statusFilter === 'all' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500'
+            className={`px-3 py-1 font-bold rounded-lg transition cursor-pointer ${
+              statusFilter === 'all' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-800'
             }`}
           >
             All History
@@ -200,42 +230,40 @@ export const AlertsPage: React.FC = () => {
         {severityFilter !== 'all' && (
           <button
             onClick={() => setSeverityFilter('all')}
-            className="text-xs text-amber-700 hover:text-amber-800 font-semibold underline shrink-0 cursor-pointer"
+            className="text-xs font-bold text-amber-700 hover:text-amber-800 underline cursor-pointer shrink-0"
           >
-            Clear severity filter
+            Reset Filter ({severityFilter})
           </button>
         )}
       </div>
 
-      {/* Alerts Feed */}
-      <div className="space-y-2.5">
+      {/* Alerts List */}
+      <div className="space-y-3">
         {filteredAlerts.length === 0 ? (
-          <div className="bg-white rounded-xl p-12 text-center border border-slate-200/80">
-            <CheckCircle2 className="w-8 h-8 text-emerald-600 mx-auto mb-2" />
-            <h3 className="font-bold text-slate-800 text-sm">No Alerts Right Now</h3>
-            <p className="text-xs text-slate-400 mt-1">
-              All inventory levels are currently within safe replenishment buffers.
+          <div className="bg-white rounded-2xl p-16 text-center border border-slate-200/80 shadow-card">
+            <CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto mb-3" />
+            <h3 className="text-base font-bold text-slate-900">No Alerts Found</h3>
+            <p className="text-xs text-slate-500 mt-1">
+              All inventory items are currently well above their replenishment buffers.
             </p>
           </div>
         ) : (
-          filteredAlerts.map((alert) => {
-            const product = productMap.get(alert.product_id);
-            return (
-              <AlertCard
-                key={alert.id}
-                alert={alert}
-                product={product}
-                onResolve={resolveAlert}
-                onCreatePO={(p) => setSelectedProductForPo(p)}
-              />
-            );
-          })
+          filteredAlerts.map((alert) => (
+            <AlertCard
+              key={alert.id}
+              alert={alert}
+              product={productMap.get(alert.product_id)}
+              onResolve={resolveAlert}
+              onCreatePO={(product) => setSelectedProductForPo(product)}
+            />
+          ))
         )}
       </div>
 
+      {/* Create Purchase Order Modal */}
       {selectedProductForPo && (
         <CreatePOModal
-          product={selectedProductForPo}
+          preselectedProduct={selectedProductForPo}
           onClose={() => setSelectedProductForPo(null)}
         />
       )}

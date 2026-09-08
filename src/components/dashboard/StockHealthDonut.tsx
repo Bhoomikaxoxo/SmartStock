@@ -28,31 +28,33 @@ export const StockHealthDonut: React.FC<StockHealthDonutProps> = ({ products }) 
   ].filter((item) => item.value > 0);
 
   const total = products.length;
+  const healthyPercentage = Math.round((counts.Healthy / (total || 1)) * 100);
 
   return (
-    <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs flex flex-col justify-between">
+    <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-card flex flex-col justify-between">
       <div className="flex items-center justify-between mb-2">
         <div>
-          <h3 className="text-sm font-bold text-slate-900">Stock Health Breakdown</h3>
-          <p className="text-xs text-slate-500">Real-time inventory stability status</p>
+          <h3 className="text-sm font-bold text-slate-900 tracking-tight">Stock Buffer Health</h3>
+          <p className="text-xs text-slate-500 mt-0.5">Real-time inventory stability status</p>
         </div>
-        <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700">
-          {total} Products
+        <span className="text-xs font-bold px-2.5 py-1 rounded-lg bg-slate-100/90 text-slate-700 border border-slate-200/60 font-mono tabular-nums">
+          {total} Skus
         </span>
       </div>
 
-      <div className="h-48 relative flex items-center justify-center">
+      <div className="h-48 relative flex items-center justify-center my-2">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
               data={data}
-              innerRadius={52}
-              outerRadius={75}
-              paddingAngle={3}
+              innerRadius={54}
+              outerRadius={78}
+              paddingAngle={4}
               dataKey="value"
+              stroke="none"
             >
               {data.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={entry.color} stroke="#ffffff" strokeWidth={2} />
+                <Cell key={`cell-${index}`} fill={entry.color} />
               ))}
             </Pie>
             <Tooltip
@@ -61,59 +63,69 @@ export const StockHealthDonut: React.FC<StockHealthDonutProps> = ({ products }) 
                 name,
               ]}
               contentStyle={{
-                backgroundColor: '#0f172a',
-                borderColor: '#1e293b',
+                backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                borderColor: 'rgba(51, 65, 85, 0.8)',
                 color: '#fff',
-                borderRadius: '8px',
+                borderRadius: '12px',
                 fontSize: '12px',
+                boxShadow: '0 10px 25px -5px rgba(0,0,0,0.3)',
+                padding: '8px 12px',
               }}
             />
           </PieChart>
         </ResponsiveContainer>
 
-        {/* Center label */}
+        {/* High-craft central badge */}
         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-          <span className="text-2xl font-black text-slate-900">
-            {Math.round((counts.Healthy / (total || 1)) * 100)}%
+          <span className="text-3xl font-black text-slate-900 tracking-tight font-mono tabular-nums">
+            {healthyPercentage}%
           </span>
-          <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
-            Healthy
+          <span className="text-[10px] font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/60 uppercase tracking-wider mt-0.5">
+            Buffer Safe
           </span>
         </div>
       </div>
 
-      {/* Legend & Count Grid */}
-      <div className="grid grid-cols-2 gap-2 pt-3 border-t border-slate-100 text-xs">
-        <div className="flex items-center justify-between p-1.5 rounded-lg bg-emerald-50/50">
-          <span className="flex items-center space-x-1.5 text-slate-700 font-medium">
+      {/* Legend & Count Grid with interactive pill styling */}
+      <div className="grid grid-cols-2 gap-2 pt-4 border-t border-slate-100 text-xs">
+        <div className="flex items-center justify-between p-2 rounded-xl bg-emerald-50/60 border border-emerald-200/40">
+          <span className="flex items-center space-x-1.5 text-slate-700 font-semibold">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
             <span>Healthy</span>
           </span>
-          <span className="font-bold text-emerald-700">{counts['Healthy']}</span>
+          <span className="font-extrabold text-emerald-800 font-mono tabular-nums">
+            {counts['Healthy']}
+          </span>
         </div>
 
-        <div className="flex items-center justify-between p-1.5 rounded-lg bg-amber-50/50">
-          <span className="flex items-center space-x-1.5 text-slate-700 font-medium">
+        <div className="flex items-center justify-between p-2 rounded-xl bg-amber-50/60 border border-amber-200/40">
+          <span className="flex items-center space-x-1.5 text-slate-700 font-semibold">
             <span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
             <span>Low Stock</span>
           </span>
-          <span className="font-bold text-amber-700">{counts['Low Stock']}</span>
+          <span className="font-extrabold text-amber-800 font-mono tabular-nums">
+            {counts['Low Stock']}
+          </span>
         </div>
 
-        <div className="flex items-center justify-between p-1.5 rounded-lg bg-rose-50/50">
-          <span className="flex items-center space-x-1.5 text-slate-700 font-medium">
+        <div className="flex items-center justify-between p-2 rounded-xl bg-rose-50/60 border border-rose-200/40">
+          <span className="flex items-center space-x-1.5 text-slate-700 font-semibold">
             <span className="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
             <span>Critical</span>
           </span>
-          <span className="font-bold text-rose-700">{counts['Critical']}</span>
+          <span className="font-extrabold text-rose-800 font-mono tabular-nums">
+            {counts['Critical']}
+          </span>
         </div>
 
-        <div className="flex items-center justify-between p-1.5 rounded-lg bg-slate-50">
-          <span className="flex items-center space-x-1.5 text-slate-600 font-medium">
-            <span className="w-2.5 h-2.5 rounded-full bg-slate-500"></span>
+        <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-200/50">
+          <span className="flex items-center space-x-1.5 text-slate-600 font-semibold">
+            <span className="w-2.5 h-2.5 rounded-full bg-slate-400"></span>
             <span>Out of Stock</span>
           </span>
-          <span className="font-bold text-slate-700">{counts['Out of Stock']}</span>
+          <span className="font-extrabold text-slate-700 font-mono tabular-nums">
+            {counts['Out of Stock']}
+          </span>
         </div>
       </div>
     </div>

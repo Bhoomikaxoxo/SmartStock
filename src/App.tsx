@@ -11,7 +11,7 @@ import { AnalyticsPage } from './components/analytics/AnalyticsPage';
 import { AlertsPage } from './components/alerts/AlertsPage';
 import { ImpactPage } from './components/impact/ImpactPage';
 import { SettingsPage } from './components/settings/SettingsPage';
-import { Lock } from 'lucide-react';
+import { Lock, ArrowLeft } from 'lucide-react';
 
 const MainLayout: React.FC = () => {
   const { activeTab, setActiveTab } = useApp();
@@ -30,19 +30,20 @@ const MainLayout: React.FC = () => {
       case 'analytics':
         if (userRole === 'staff') {
           return (
-            <div className="bg-white rounded-xl p-12 text-center border border-slate-200 shadow-2xs max-w-md mx-auto my-12">
-              <div className="w-10 h-10 bg-amber-100 text-amber-800 rounded-lg flex items-center justify-center mx-auto mb-3">
-                <Lock className="w-5 h-5" />
+            <div className="glass-card rounded-3xl p-10 text-center border border-slate-200/80 shadow-card max-w-md mx-auto my-16 animate-scale-in">
+              <div className="w-12 h-12 bg-amber-50 text-amber-800 rounded-2xl flex items-center justify-center mx-auto mb-3.5 border border-amber-200/80">
+                <Lock className="w-6 h-6 stroke-[2]" />
               </div>
-              <h2 className="text-base font-bold text-slate-900">Access Restricted</h2>
-              <p className="text-xs text-slate-500 mt-1">
-                Demand Forecasting and automated reorders are reserved for Purchasing Staff and Owners.
+              <h2 className="text-base font-black text-slate-900 tracking-tight">Access Restricted</h2>
+              <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                Demand Forecasting and automated reorders are reserved for Purchasing Staff and Bakery Owners.
               </p>
               <button
                 onClick={() => setActiveTab('inventory')}
-                className="mt-4 px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs rounded-lg transition cursor-pointer"
+                className="mt-5 px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl transition shadow-sm cursor-pointer inline-flex items-center space-x-1.5"
               >
-                Return to Inventory
+                <ArrowLeft className="w-3.5 h-3.5" />
+                <span>Return to Inventory Catalog</span>
               </button>
             </div>
           );
@@ -53,19 +54,20 @@ const MainLayout: React.FC = () => {
       case 'impact':
         if (userRole !== 'owner') {
           return (
-            <div className="bg-white rounded-xl p-12 text-center border border-slate-200 shadow-2xs max-w-md mx-auto my-12">
-              <div className="w-10 h-10 bg-amber-100 text-amber-800 rounded-lg flex items-center justify-center mx-auto mb-3">
-                <Lock className="w-5 h-5" />
+            <div className="glass-card rounded-3xl p-10 text-center border border-slate-200/80 shadow-card max-w-md mx-auto my-16 animate-scale-in">
+              <div className="w-12 h-12 bg-amber-50 text-amber-800 rounded-2xl flex items-center justify-center mx-auto mb-3.5 border border-amber-200/80">
+                <Lock className="w-6 h-6 stroke-[2]" />
               </div>
-              <h2 className="text-base font-bold text-slate-900">Owner Access Required</h2>
-              <p className="text-xs text-slate-500 mt-1">
+              <h2 className="text-base font-black text-slate-900 tracking-tight">Owner Access Required</h2>
+              <p className="text-xs text-slate-500 mt-1 leading-relaxed">
                 Financial impact calculation and margin metrics are confidential to business owners.
               </p>
               <button
                 onClick={() => setActiveTab('inventory')}
-                className="mt-4 px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs rounded-lg transition cursor-pointer"
+                className="mt-5 px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl transition shadow-sm cursor-pointer inline-flex items-center space-x-1.5"
               >
-                Return to Inventory
+                <ArrowLeft className="w-3.5 h-3.5" />
+                <span>Return to Inventory Catalog</span>
               </button>
             </div>
           );
@@ -74,19 +76,20 @@ const MainLayout: React.FC = () => {
       case 'settings':
         if (userRole !== 'owner') {
           return (
-            <div className="bg-white rounded-xl p-12 text-center border border-slate-200 shadow-2xs max-w-md mx-auto my-12">
-              <div className="w-10 h-10 bg-amber-100 text-amber-800 rounded-lg flex items-center justify-center mx-auto mb-3">
-                <Lock className="w-5 h-5" />
+            <div className="glass-card rounded-3xl p-10 text-center border border-slate-200/80 shadow-card max-w-md mx-auto my-16 animate-scale-in">
+              <div className="w-12 h-12 bg-amber-50 text-amber-800 rounded-2xl flex items-center justify-center mx-auto mb-3.5 border border-amber-200/80">
+                <Lock className="w-6 h-6 stroke-[2]" />
               </div>
-              <h2 className="text-base font-bold text-slate-900">Owner Access Required</h2>
-              <p className="text-xs text-slate-500 mt-1">
+              <h2 className="text-base font-black text-slate-900 tracking-tight">Owner Access Required</h2>
+              <p className="text-xs text-slate-500 mt-1 leading-relaxed">
                 System administration and staging controls are restricted to bakery owners.
               </p>
               <button
                 onClick={() => setActiveTab('inventory')}
-                className="mt-4 px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs rounded-lg transition cursor-pointer"
+                className="mt-5 px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl transition shadow-sm cursor-pointer inline-flex items-center space-x-1.5"
               >
-                Return to Inventory
+                <ArrowLeft className="w-3.5 h-3.5" />
+                <span>Return to Inventory Catalog</span>
               </button>
             </div>
           );
@@ -98,25 +101,26 @@ const MainLayout: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900">
+    <div className="min-h-screen flex flex-col selection:bg-amber-100 selection:text-amber-900">
       <Header />
       <Navigation />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full animate-fade-in">
         {renderContent()}
       </main>
 
       {/* Production Operational Footer */}
-      <footer className="bg-white border-t border-slate-200 py-6 text-xs text-slate-500 mt-auto">
+      <footer className="glass-nav py-6 text-xs text-slate-500 mt-auto border-t border-slate-200/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div className="text-center sm:text-left">
-            <span className="font-semibold text-slate-700">SmartStock Systems</span>
-            <span className="text-slate-300 mx-2">•</span>
-            <span>Sweet Crust Bakery (Branch #104)</span>
-            <span className="text-slate-300 mx-2">•</span>
-            <span>Inventory Forecasting & Automated Buffer Replenishment</span>
+          <div className="text-center sm:text-left flex items-center space-x-2 flex-wrap justify-center">
+            <span className="font-extrabold text-slate-800">SmartStock</span>
+            <span className="text-slate-300">•</span>
+            <span>Sweet Crust Artisan Bakery #104</span>
+            <span className="text-slate-300">•</span>
+            <span className="text-slate-500">Inventory Forecasting & Automated Buffer Replenishment</span>
           </div>
-          <div className="text-slate-400 font-mono text-[11px]">
-            Session Active ({currentUser?.email})
+          <div className="flex items-center space-x-2 font-mono text-[11px] text-slate-400">
+            <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+            <span>Session: {currentUser?.email}</span>
           </div>
         </div>
       </footer>

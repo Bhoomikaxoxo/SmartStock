@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { Product } from '../../types';
-import { X, TrendingUp, CheckCircle, AlertCircle } from 'lucide-react';
+import { X, TrendingUp, CheckCircle2, AlertCircle } from 'lucide-react';
 import { formatCurrencyINR } from '../../services/reorderEngine';
 
 interface RecordSaleModalProps {
@@ -30,44 +30,52 @@ export const RecordSaleModal: React.FC<RecordSaleModalProps> = ({ product, onClo
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-in fade-in duration-200">
-      <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 border border-slate-200 relative">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-md p-4 animate-fade-in">
+      <div className="glass-modal rounded-3xl shadow-elevated max-w-md w-full p-6 sm:p-7 border border-slate-200/90 relative animate-scale-in">
         <div className="flex items-center justify-between pb-4 border-b border-slate-100">
-          <div className="flex items-center space-x-2.5">
-            <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
-              <TrendingUp className="w-4 h-4" />
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold border border-emerald-200/60 shadow-2xs">
+              <TrendingUp className="w-5 h-5 stroke-[2.2]" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-slate-900">Record Product Sale / Usage</h2>
-              <p className="text-xs text-slate-500">{product.name}</p>
+              <h2 className="text-base font-black text-slate-900 tracking-tight">
+                Record Product Sale
+              </h2>
+              <p className="text-xs text-slate-500 font-medium truncate max-w-[240px]">
+                {product.name}
+              </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer"
+            className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="mt-4 space-y-4 text-xs">
-          <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 grid grid-cols-2 gap-2">
+        <form onSubmit={handleSubmit} className="mt-5 space-y-4 text-xs">
+          <div className="p-3.5 bg-slate-50/80 rounded-2xl border border-slate-200/70 grid grid-cols-2 gap-3">
             <div>
-              <span className="text-slate-500 block text-[11px]">Available Stock</span>
-              <span className="text-base font-bold text-slate-900 font-mono">
+              <span className="text-slate-500 block text-[11px] font-semibold uppercase tracking-wider">
+                Available Stock
+              </span>
+              <span className="text-base font-black text-slate-900 font-mono tabular-nums">
                 {product.current_stock} {product.unit}
               </span>
             </div>
             <div>
-              <span className="text-slate-500 block text-[11px]">Selling Price</span>
-              <span className="text-base font-bold text-slate-900 font-mono">
-                ₹{product.selling_price} / {product.unit}
+              <span className="text-slate-500 block text-[11px] font-semibold uppercase tracking-wider">
+                Selling Price
+              </span>
+              <span className="text-base font-black text-slate-900 font-mono tabular-nums">
+                ₹{product.selling_price} <span className="text-xs font-medium text-slate-400">/{product.unit}</span>
               </span>
             </div>
           </div>
 
           <div>
-            <label className="block font-semibold text-slate-700 mb-1">
+            <label className="block font-bold text-slate-700 mb-1.5">
               Units Sold / Dispatched ({product.unit}) *
             </label>
             <div className="flex items-center space-x-2">
@@ -79,9 +87,9 @@ export const RecordSaleModal: React.FC<RecordSaleModalProps> = ({ product, onClo
                 required
                 value={unitsSold || ''}
                 onChange={(e) => setUnitsSold(parseFloat(e.target.value) || 0)}
-                className={`w-full px-3 py-2 rounded-xl border text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 ${
+                className={`w-full px-3.5 py-2.5 rounded-xl border text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 font-mono tabular-nums ${
                   isExceeding
-                    ? 'border-rose-300 focus:ring-rose-500 bg-rose-50/20'
+                    ? 'border-rose-300 focus:ring-rose-500 bg-rose-50/30'
                     : 'border-slate-200 focus:ring-amber-500'
                 }`}
               />
@@ -89,72 +97,64 @@ export const RecordSaleModal: React.FC<RecordSaleModalProps> = ({ product, onClo
                 <button
                   type="button"
                   onClick={() => setUnitsSold((prev) => Math.min(product.current_stock, prev + 5))}
-                  className="px-2 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-lg cursor-pointer"
+                  className="px-2.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-xl cursor-pointer text-xs transition"
                 >
                   +5
                 </button>
                 <button
                   type="button"
                   onClick={() => setUnitsSold((prev) => Math.min(product.current_stock, prev + 20))}
-                  className="px-2 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-lg cursor-pointer"
+                  className="px-2.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-xl cursor-pointer text-xs transition"
                 >
                   +20
                 </button>
               </div>
             </div>
 
-            {/* Validation errors */}
+            {/* Validation Error Message */}
             {isExceeding && (
-              <div className="mt-2 p-2.5 rounded-lg bg-rose-50 border border-rose-200 flex items-center space-x-2 text-rose-700">
-                <AlertCircle className="w-4 h-4 shrink-0" />
-                <span>Cannot exceed available inventory ({product.current_stock} {product.unit} in stock).</span>
-              </div>
-            )}
-            {unitsSold <= 0 && (
-              <div className="mt-2 p-2 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-[11px]">
-                Quantity must be greater than zero.
-              </div>
+              <p className="mt-2 text-rose-600 font-bold flex items-center space-x-1">
+                <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                <span>Cannot sell {unitsSold} {product.unit} — only {product.current_stock} {product.unit} available in store.</span>
+              </p>
             )}
           </div>
 
-          {/* Revenue Calculation preview */}
-          <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between">
-            <div>
-              <span className="text-slate-500 text-[11px] block font-medium">
-                Recorded Revenue
-              </span>
-              <span className="text-lg font-black text-slate-900 font-mono">
+          {/* Live Revenue & Stock Depletion Preview */}
+          <div className="p-3.5 rounded-2xl bg-amber-50/60 border border-amber-200/70 space-y-1.5">
+            <div className="flex justify-between text-slate-700">
+              <span className="font-medium">Total Retail Sale Value:</span>
+              <span className="font-black text-amber-900 font-mono text-sm tabular-nums">
                 {formatCurrencyINR(totalRevenue)}
               </span>
             </div>
-            <div className="text-right">
-              <span className="text-slate-500 text-[11px] block font-medium">
-                Remaining Stock After Sale
-              </span>
-              <span
-                className={`text-xs font-bold font-mono ${
-                  remainingStock === 0 ? 'text-rose-600' : 'text-slate-800'
-                }`}
-              >
-                {remainingStock} {product.unit} {remainingStock === 0 ? '(Depletes to 0)' : ''}
+            <div className="flex justify-between text-slate-600 text-[11px] pt-1 border-t border-amber-200/60">
+              <span>Remaining On-Hand Stock:</span>
+              <span className={`font-bold font-mono tabular-nums ${remainingStock < product.minimum_required ? 'text-amber-800' : 'text-slate-800'}`}>
+                {remainingStock.toFixed(1)} {product.unit}{' '}
+                {remainingStock < product.minimum_required && '(Below Buffer)'}
               </span>
             </div>
           </div>
 
-          <div className="flex items-center justify-end space-x-3 pt-4 border-t border-slate-100">
+          <div className="flex items-center justify-end space-x-2 pt-2">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition cursor-pointer"
+              className="px-4 py-2.5 text-slate-600 hover:bg-slate-100 font-bold rounded-xl transition cursor-pointer text-xs"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={!canSubmit}
-              className="px-5 py-2 font-bold bg-amber-600 hover:bg-amber-700 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-xl transition shadow-xs flex items-center space-x-1.5 cursor-pointer"
+              className={`px-5 py-2.5 text-white font-bold rounded-xl transition cursor-pointer flex items-center space-x-1.5 text-xs shadow-sm ${
+                canSubmit
+                  ? 'bg-emerald-600 hover:bg-emerald-700 active:scale-95'
+                  : 'bg-slate-300 cursor-not-allowed opacity-60'
+              }`}
             >
-              <CheckCircle className="w-4 h-4" />
+              <CheckCircle2 className="w-4 h-4" />
               <span>Record Sale</span>
             </button>
           </div>

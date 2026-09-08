@@ -9,12 +9,15 @@ import {
   ShoppingCart,
   ArrowRight,
   TrendingDown,
+  Sparkles,
+  ShieldCheck,
+  Clock,
 } from 'lucide-react';
 import { StatCard } from './StatCard';
 import { StockHealthDonut } from './StockHealthDonut';
 import { KpiProgress } from './KpiProgress';
 import { RecentActivityFeed } from './RecentActivityFeed';
-import { formatCurrencyINR } from '../../services/reorderEngine';
+import { formatCurrencyINR, getStockStatus } from '../../services/reorderEngine';
 
 export const DashboardPage: React.FC = () => {
   const {
@@ -41,27 +44,76 @@ export const DashboardPage: React.FC = () => {
     (r) => r.days_until_stockout <= r.lead_time_days
   );
 
+  const healthyCount = products.filter((p) => {
+    const { status } = getStockStatus(p.current_stock, p.minimum_required);
+    return status === 'Healthy';
+  }).length;
+  const healthyPercentage = Math.round((healthyCount / (totalProducts || 1)) * 100);
+
+  const todayFormatted = new Date().toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+
   return (
     <div className="space-y-6">
-      {/* Functional Alert Banner (Only shown if critical low stock exists) */}
+      {/* Top Greeting & Shift Overview Banner */}
+      <div className="glass-card rounded-2xl p-5 sm:p-6 border border-slate-200/80 shadow-card flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <div className="flex items-center space-x-2 text-xs font-semibold text-slate-500 mb-1">
+            <Clock className="w-3.5 h-3.5 text-amber-600" />
+            <span>{todayFormatted}</span>
+            <span className="text-slate-300">•</span>
+            <span>Morning Bake Shift</span>
+          </div>
+          <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+            Welcome back, {currentUser?.name?.split(' ')[0] || 'Baker'}
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-600 mt-1 leading-relaxed">
+            Bakery buffer health is currently at{' '}
+            <strong className="text-emerald-700 font-bold">{healthyPercentage}%</strong>.{' '}
+            {criticalAlerts.length > 0 ? (
+              <span className="text-rose-700 font-semibold">
+                {criticalAlerts.length} critical inventory shortage requires replenishment.
+              </span>
+            ) : (
+              <span className="text-slate-600">All essential ingredient safety buffers are stable.</span>
+            )}
+          </p>
+        </div>
+
+        <div className="flex items-center space-x-2.5 self-start md:self-center">
+          <button
+            onClick={() => setActiveTab('inventory')}
+            className="px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl transition shadow-sm cursor-pointer flex items-center space-x-1.5"
+          >
+            <span>Master Inventory</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      </div>
+
+      {/* Critical Shortage Notification Strip (Only shown if critical stock exists) */}
       {criticalAlerts.length > 0 && (
-        <div className="bg-rose-50 border border-rose-200 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+        <div className="bg-rose-50/90 border border-rose-200/90 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-2xs">
           <div className="flex items-start sm:items-center space-x-3">
-            <div className="p-1.5 bg-rose-100 text-rose-700 rounded-lg shrink-0 mt-0.5 sm:mt-0">
+            <div className="p-2 bg-rose-100 text-rose-700 rounded-xl shrink-0 mt-0.5 sm:mt-0 border border-rose-200">
               <AlertTriangle className="w-4 h-4" />
             </div>
             <div>
-              <span className="font-bold text-rose-900 block sm:inline mr-2">
+              <span className="font-extrabold text-rose-900 block sm:inline mr-2 uppercase tracking-wide text-[11px]">
                 Critical Inventory Shortage:
               </span>
-              <span className="text-rose-800">
+              <span className="text-rose-800 font-medium">
                 {criticalAlerts[0]?.message}
               </span>
             </div>
           </div>
           <button
             onClick={() => setActiveTab('alerts')}
-            className="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs rounded-lg transition self-start sm:self-center shrink-0 cursor-pointer"
+            className="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl transition self-start sm:self-center shrink-0 cursor-pointer shadow-2xs"
           >
             Review Alerts ({criticalAlerts.length})
           </button>
@@ -73,7 +125,7 @@ export const DashboardPage: React.FC = () => {
         <StatCard
           title="Products Tracked"
           value={totalProducts.toString()}
-          subtitle="8 core bakery items"
+          subtitle="8 core bakery ingredients"
           icon={Package}
           change="+2"
           isPositive={true}
@@ -96,7 +148,7 @@ export const DashboardPage: React.FC = () => {
           subtitle={
             lowStockItems.length > 0
               ? `${lowStockItems.map((p) => p.name.split(' ')[0]).join(', ')}`
-              : 'All items healthy'
+              : 'All ingredients nominal'
           }
           icon={AlertTriangle}
           alertLevel={lowStockItems.length > 0 ? 'critical' : 'none'}
@@ -123,26 +175,28 @@ export const DashboardPage: React.FC = () => {
 
       {/* Urgent Reorder Trigger Strip */}
       {urgentReorders.length > 0 && (
-        <div className="bg-amber-50/70 border border-amber-200/80 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+        <div className="bg-amber-50/80 border border-amber-200/90 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-2xs">
           <div className="flex items-start sm:items-center space-x-3">
-            <div className="p-1.5 bg-amber-100 text-amber-800 rounded-lg shrink-0">
+            <div className="p-2 bg-amber-100 text-amber-800 rounded-xl shrink-0 border border-amber-200">
               <ShoppingCart className="w-4 h-4" />
             </div>
             <div>
-              <span className="font-bold text-amber-900 mr-2">Reorder Trigger:</span>
-              <span className="text-amber-800">
+              <span className="font-bold text-amber-900 mr-2 uppercase tracking-wide text-[11px]">
+                Reorder Trigger Active:
+              </span>
+              <span className="text-amber-800 font-medium">
                 {urgentReorders.length === 1
-                  ? `Order ${urgentReorders[0].recommended_quantity} ${urgentReorders[0].unit} of ${urgentReorders[0].product_name} within ${urgentReorders[0].days_until_stockout} days.`
+                  ? `Order ${urgentReorders[0].recommended_quantity} ${urgentReorders[0].unit} of ${urgentReorders[0].product_name} within ${urgentReorders[0].days_until_stockout} days to avoid stockout.`
                   : `${urgentReorders.length} items have days-until-stockout ≤ vendor lead time.`}
               </span>
             </div>
           </div>
           <button
             onClick={() => setActiveTab('analytics')}
-            className="px-3 py-1.5 bg-amber-700 hover:bg-amber-800 text-white font-semibold text-xs rounded-lg transition self-start sm:self-center shrink-0 cursor-pointer flex items-center space-x-1"
+            className="px-3.5 py-1.5 bg-amber-700 hover:bg-amber-800 text-white font-bold text-xs rounded-xl transition self-start sm:self-center shrink-0 cursor-pointer flex items-center space-x-1.5 shadow-2xs"
           >
             <span>Review Reorders</span>
-            <ArrowRight className="w-3 h-3" />
+            <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>
       )}
@@ -160,31 +214,31 @@ export const DashboardPage: React.FC = () => {
         </div>
 
         {/* Financial Summary Card */}
-        <div className="bg-white rounded-xl p-5 border border-slate-200/80 shadow-xs flex flex-col justify-between">
+        <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-card flex flex-col justify-between">
           <div>
-            <div className="flex items-center space-x-2 text-slate-500 text-xs font-semibold uppercase tracking-wider mb-2">
-              <TrendingDown className="w-4 h-4 text-emerald-600" />
+            <div className="flex items-center space-x-2 text-slate-500 text-xs font-bold uppercase tracking-wider mb-2">
+              <TrendingDown className="w-4 h-4 text-emerald-600 stroke-[2.2]" />
               <span>Stockout Impact Tracking</span>
             </div>
-            <h3 className="text-base font-bold text-slate-900 tracking-tight">
-              Estimated ₹96,000 Annual Savings
+            <h3 className="text-lg font-black text-slate-900 tracking-tight">
+              Estimated ₹96,000 Annual Benefit
             </h3>
             <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
               Eliminating avoidable weekend shortages preserves ₹8,000/month in retail bakery sales that would otherwise be lost to cancelled orders.
             </p>
 
-            <div className="my-4 p-3 rounded-lg bg-slate-50 border border-slate-200/60 space-y-1.5 text-xs">
+            <div className="my-4 p-3.5 rounded-xl bg-slate-50/80 border border-slate-200/60 space-y-2 text-xs">
               <div className="flex justify-between text-slate-600">
-                <span>Loss before system:</span>
-                <span className="font-semibold text-rose-600">₹10,000 / mo</span>
+                <span>Loss before SmartStock:</span>
+                <span className="font-extrabold text-rose-600 font-mono">₹10,000 / mo</span>
               </div>
               <div className="flex justify-between text-slate-600">
                 <span>With automated buffer:</span>
-                <span className="font-semibold text-emerald-700">₹2,000 / mo</span>
+                <span className="font-extrabold text-emerald-700 font-mono">₹2,000 / mo</span>
               </div>
-              <div className="pt-1.5 border-t border-slate-200 flex justify-between font-bold text-slate-900">
-                <span>Net Monthly Benefit:</span>
-                <span className="text-emerald-700">₹8,000 / mo</span>
+              <div className="pt-2 border-t border-slate-200 flex justify-between font-bold text-slate-900">
+                <span>Net Monthly Savings:</span>
+                <span className="text-emerald-700 font-mono font-extrabold">₹8,000 / mo</span>
               </div>
             </div>
           </div>
@@ -192,14 +246,14 @@ export const DashboardPage: React.FC = () => {
           {currentUser?.role === 'owner' ? (
             <button
               onClick={() => setActiveTab('impact')}
-              className="w-full py-2 px-3 rounded-lg border border-slate-300 hover:bg-slate-50 font-semibold text-xs text-slate-800 transition flex items-center justify-center space-x-1 cursor-pointer"
+              className="w-full py-2.5 px-3 rounded-xl border border-slate-300/80 hover:bg-slate-50 font-bold text-xs text-slate-800 transition flex items-center justify-center space-x-1.5 cursor-pointer shadow-2xs"
             >
               <span>Open Impact Calculator</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           ) : (
-            <p className="text-[11px] text-slate-400 italic text-center">
-              Detailed financial models restricted to Owner
+            <p className="text-[11px] text-slate-400 italic text-center py-2">
+              Confidential financial models restricted to Bakery Owner
             </p>
           )}
         </div>
