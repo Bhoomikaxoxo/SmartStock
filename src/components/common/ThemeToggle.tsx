@@ -12,12 +12,12 @@ export const ThemeToggle: React.FC = () => {
       onClick={toggleTheme}
       aria-label={theme === 'light' ? 'Switch to dark theme' : 'Switch to light theme'}
       title={theme === 'light' ? 'Switch to dark theme' : 'Switch to light theme'}
-      className="fixed bottom-6 right-6 z-40 w-11 h-11 rounded-full flex items-center justify-center border shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 bg-white text-amber-600 border-[#E4D9C3] dark:bg-[#26201A] dark:text-[#E0954A] dark:border-[#3A3128]"
+      className="fixed bottom-6 right-6 z-40 w-11 h-11 rounded-full flex items-center justify-center border shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 bg-white text-brand-600 border-[#E3E3E8] dark:bg-[#1B2030] dark:text-[#DE9E68] dark:border-[#22293C]"
       style={{
         boxShadow:
           theme === 'dark'
-            ? '0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 0 12px 1px rgba(224, 149, 74, 0.2)'
-            : '0 10px 25px -5px rgba(43, 36, 28, 0.12), 0 2px 6px -1px rgba(43, 36, 28, 0.08)',
+            ? '0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 0 12px 1px rgba(222, 158, 104, 0.18)'
+            : '0 10px 25px -5px rgba(17, 19, 24, 0.12), 0 2px 6px -1px rgba(17, 19, 24, 0.08)',
       }}
     >
       <div className="relative w-5 h-5 flex items-center justify-center">

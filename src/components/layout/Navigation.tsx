@@ -39,9 +39,9 @@ export const Navigation: React.FC = () => {
   const visibleTabs = tabs.filter((tab) => canAccessTab(tab.id, userRole));
 
   return (
-    <nav className="glass-nav sticky top-16 z-30 transition-all hidden md:block">
+    <nav className="glass-nav sticky top-16 z-30 hidden md:block border-b border-white/8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex space-x-1 sm:space-x-1.5 overflow-x-auto scrollbar-none py-2.5">
+        <div className="flex space-x-1 overflow-x-auto scrollbar-none">
           {visibleTabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -50,17 +50,15 @@ export const Navigation: React.FC = () => {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`group flex items-center space-x-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer relative ${
+                className={`group relative flex items-center space-x-2 px-3.5 pt-3 pb-2.5 text-xs font-semibold whitespace-nowrap cursor-pointer transition-colors ${
                   isActive
-                    ? 'bg-slate-900 text-white shadow-sm shadow-slate-900/10'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-white/80 border border-transparent hover:border-slate-200/60'
+                    ? 'text-white'
+                    : 'text-white/45 hover:text-white/80'
                 }`}
               >
                 <Icon
-                  className={`w-4 h-4 transition-transform group-hover:scale-105 ${
-                    isActive
-                      ? 'text-amber-400 stroke-[2.4]'
-                      : 'text-slate-400 group-hover:text-slate-600'
+                  className={`w-4 h-4 transition-colors ${
+                    isActive ? 'text-brand-400' : 'text-white/30 group-hover:text-white/60'
                   }`}
                 />
                 <span>{tab.label}</span>
@@ -70,15 +68,22 @@ export const Navigation: React.FC = () => {
                   <span
                     className={`ml-1 text-[10px] font-extrabold px-1.5 py-0.2 rounded-full leading-tight transition-colors ${
                       isActive
-                        ? 'bg-amber-500 text-slate-950'
+                        ? 'bg-brand-500/20 text-brand-300'
                         : criticalCount > 0
-                        ? 'bg-rose-100 text-rose-700'
-                        : 'bg-amber-100 text-amber-800'
+                        ? 'bg-rose-500/15 text-rose-300'
+                        : 'bg-white/10 text-white/50'
                     }`}
                   >
                     {tab.badge}
                   </span>
                 )}
+
+                {/* Active indicator underline */}
+                <span
+                  className={`absolute left-0 right-0 -bottom-px h-[2px] rounded-full transition-all ${
+                    isActive ? 'bg-brand-500' : 'bg-transparent'
+                  }`}
+                />
               </button>
             );
           })}

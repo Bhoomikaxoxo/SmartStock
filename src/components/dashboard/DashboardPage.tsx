@@ -57,7 +57,7 @@ export const DashboardPage: React.FC = () => {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-7">
       {/* Top Greeting & Shift Overview Banner */}
       <div className="glass-card rounded-2xl p-5 sm:p-6 border border-slate-200/80 shadow-card flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
@@ -120,7 +120,7 @@ export const DashboardPage: React.FC = () => {
       )}
 
       {/* Primary Metrics Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         <StatCard
           title="Products Tracked"
           value={totalProducts.toString()}

@@ -1,6 +1,7 @@
 import React from 'react';
 import { ThemeProvider } from './context/ThemeContext';
 import { ThemeToggle } from './components/common/ThemeToggle';
+import { CommandPalette } from './components/common/CommandPalette';
 import { ToastProvider, useToast } from './context/ToastContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { AppProvider, useApp } from './context/AppContext';
@@ -71,25 +72,26 @@ const MainLayout: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col selection:bg-amber-100 selection:text-amber-900">
+    <div className="min-h-screen flex flex-col selection:bg-brand-100 selection:text-brand-900">
       <Header />
       <Navigation />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full animate-fade-in">
+      <CommandPalette />
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full animate-fade-in">
         {renderContent()}
       </main>
 
       {/* Production Operational Footer */}
-      <footer className="glass-nav py-6 text-xs text-slate-500 mt-auto border-t border-slate-200/80">
+      <footer className="glass-nav py-6 text-xs text-white/40 mt-auto border-t border-white/8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="text-center sm:text-left flex items-center space-x-2 flex-wrap justify-center">
-            <span className="font-extrabold text-slate-800">SmartStock</span>
-            <span className="text-slate-300">•</span>
+            <span className="font-bold text-white/80">SmartStock</span>
+            <span className="text-white/15">•</span>
             <span>Sweet Crust Artisan Bakery #104</span>
-            <span className="text-slate-300">•</span>
-            <span className="text-slate-500">Inventory Forecasting & Automated Buffer Replenishment</span>
+            <span className="text-white/15">•</span>
+            <span className="text-white/35">Inventory Forecasting & Automated Buffer Replenishment</span>
           </div>
-          <div className="flex items-center space-x-2 font-mono text-[11px] text-slate-400">
-            <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+          <div className="flex items-center space-x-2 font-mono text-[11px] text-white/30">
+            <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
             <span>Session: {currentUser?.email}</span>
           </div>
         </div>

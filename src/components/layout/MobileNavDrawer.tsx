@@ -75,12 +75,12 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
   const getRoleBadgeStyle = (role?: string) => {
     switch (role) {
       case 'owner':
-        return 'bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800';
+        return 'bg-brand-500/15 text-brand-300 border-brand-400/25';
       case 'purchasing':
-        return 'bg-purple-100 text-purple-900 border-purple-300 dark:bg-purple-950/60 dark:text-purple-300 dark:border-purple-800';
+        return 'bg-purple-500/15 text-purple-300 border-purple-400/25';
       case 'staff':
       default:
-        return 'bg-slate-200 text-slate-700 border-slate-300 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700';
+        return 'bg-white/8 text-white/60 border-white/12';
     }
   };
 
@@ -88,31 +88,31 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
     <div className="fixed inset-0 z-50 md:hidden flex animate-fade-in">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm transition-opacity"
+        className="fixed inset-0 bg-black/60"
         onClick={onClose}
         aria-hidden="true"
       />
 
       {/* Slide-in Drawer Container */}
-      <div className="relative w-4/5 max-w-sm bg-white dark:bg-[#1E1813] h-full shadow-2xl flex flex-col z-10 border-r border-slate-200/90 dark:border-slate-800/80 animate-slide-in-right overflow-hidden">
+      <div className="relative w-4/5 max-w-sm bg-ink-950 h-full shadow-elevated flex flex-col z-10 border-r border-white/10 animate-slide-in-right overflow-hidden">
         {/* Drawer Header */}
-        <div className="p-4 border-b border-slate-100 dark:border-slate-800/80 flex items-center justify-between shrink-0">
+        <div className="p-4 border-b border-white/8 flex items-center justify-between shrink-0">
           <div className="flex items-center space-x-3">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-500 via-amber-600 to-amber-700 flex items-center justify-center text-white shadow-sm shadow-amber-600/30">
-              <Package className="w-5 h-5 stroke-[2.2]" />
+            <div className="w-9 h-9 rounded-lg bg-brand-600 flex items-center justify-center text-white shadow-chrome">
+              <Package className="w-[18px] h-[18px] stroke-[2.2]" />
             </div>
             <div>
-              <span className="font-black text-lg tracking-tight text-slate-900 dark:text-slate-100 block leading-tight">
-                Smart<span className="text-amber-600 dark:text-amber-500">Stock</span>
+              <span className="font-bold text-base tracking-tight text-white block leading-tight">
+                Smart<span className="text-brand-400">Stock</span>
               </span>
-              <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
+              <span className="text-[10px] text-white/40 font-medium">
                 Sweet Crust Bakery #104
               </span>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+            className="p-2 rounded-lg text-white/40 hover:text-white/80 hover:bg-white/10 transition cursor-pointer"
             aria-label="Close menu"
           >
             <X className="w-5 h-5" />
@@ -120,13 +120,13 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
         </div>
 
         {/* User Profile Pill */}
-        <div className="p-4 border-b border-slate-100 dark:border-slate-800/80 bg-slate-50/70 dark:bg-slate-900/40 shrink-0">
+        <div className="p-4 border-b border-white/8 bg-white/[0.03] shrink-0">
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 rounded-lg bg-slate-900 dark:bg-amber-600 text-white font-bold flex items-center justify-center text-xs shadow-2xs">
+            <div className="w-8 h-8 rounded-md bg-white/10 border border-white/10 text-white font-bold flex items-center justify-center text-xs">
               {currentUser?.avatarInitial || 'U'}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="font-bold text-xs text-slate-900 dark:text-slate-100 truncate">
+              <p className="font-semibold text-xs text-white/90 truncate">
                 {currentUser?.name}
               </p>
               <div className="flex items-center space-x-2 mt-0.5">
@@ -141,8 +141,8 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
                     ? 'Purchasing'
                     : 'Floor Staff'}
                 </span>
-                <span className="text-[10px] text-emerald-600 font-semibold flex items-center space-x-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                <span className="text-[10px] text-emerald-400 font-semibold flex items-center space-x-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
                   <span>Active</span>
                 </span>
               </div>
@@ -151,14 +151,14 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
         </div>
 
         {/* Quick Operations Bar */}
-        <div className="p-3 border-b border-slate-100 dark:border-slate-800/80 grid grid-cols-2 gap-2 shrink-0">
+        <div className="p-3 border-b border-white/8 grid grid-cols-2 gap-2 shrink-0">
           <button
             onClick={() => {
               handleSelectTab('inventory');
             }}
-            className="flex items-center justify-center space-x-1.5 px-3 py-2 rounded-xl text-xs font-bold text-amber-900 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-800/60 min-h-[40px] cursor-pointer"
+            className="flex items-center justify-center space-x-1.5 px-3 py-2 rounded-lg text-xs font-semibold text-brand-300 bg-brand-500/10 border border-brand-400/20 min-h-[40px] cursor-pointer"
           >
-            <PlusCircle className="w-3.5 h-3.5 text-amber-600" />
+            <PlusCircle className="w-3.5 h-3.5 text-brand-400" />
             <span>Log Sale</span>
           </button>
           <button
@@ -166,16 +166,16 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
               onClose();
               onOpenScanner();
             }}
-            className="flex items-center justify-center space-x-1.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-800 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 min-h-[40px] cursor-pointer"
+            className="flex items-center justify-center space-x-1.5 px-3 py-2 rounded-lg text-xs font-semibold text-white/75 bg-white/5 border border-white/10 min-h-[40px] cursor-pointer"
           >
-            <ScanBarcode className="w-3.5 h-3.5 text-slate-600 dark:text-slate-400" />
+            <ScanBarcode className="w-3.5 h-3.5 text-white/60" />
             <span>Receiving</span>
           </button>
         </div>
 
         {/* Navigation Tabs List */}
         <nav className="p-3 overflow-y-auto flex-1 space-y-1">
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-3 py-1">
+          <p className="text-[10px] font-bold text-white/30 uppercase tracking-wider px-3 py-1">
             Station Navigation
           </p>
           {visibleTabs.map((tab) => {
@@ -186,18 +186,16 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
               <button
                 key={tab.id}
                 onClick={() => handleSelectTab(tab.id)}
-                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer min-h-[42px] ${
+                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-xs font-semibold transition-all cursor-pointer min-h-[42px] ${
                   isActive
-                    ? 'bg-slate-900 dark:bg-amber-600 text-white shadow-sm'
-                    : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60'
+                    ? 'bg-brand-500/15 text-brand-300'
+                    : 'text-white/55 hover:bg-white/8 hover:text-white/80'
                 }`}
               >
                 <div className="flex items-center space-x-3">
                   <Icon
                     className={`w-4 h-4 ${
-                      isActive
-                        ? 'text-amber-400 dark:text-white'
-                        : 'text-slate-400 dark:text-slate-500'
+                      isActive ? 'text-brand-400' : 'text-white/30'
                     }`}
                   />
                   <span>{tab.label}</span>
@@ -207,10 +205,10 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
                   <span
                     className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${
                       isActive
-                        ? 'bg-amber-500 text-slate-950'
+                        ? 'bg-brand-500/25 text-brand-200'
                         : criticalCount > 0
-                        ? 'bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300'
-                        : 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300'
+                        ? 'bg-rose-500/15 text-rose-300'
+                        : 'bg-white/10 text-white/50'
                     }`}
                   >
                     {tab.badge}
@@ -222,15 +220,15 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
         </nav>
 
         {/* Drawer Footer Actions */}
-        <div className="p-3 border-t border-slate-100 dark:border-slate-800 shrink-0 bg-slate-50/50 dark:bg-slate-900/50">
+        <div className="p-3 border-t border-white/8 shrink-0">
           <button
             onClick={() => {
               onClose();
               logout();
             }}
-            className="w-full px-3.5 py-2.5 text-left text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-xl flex items-center space-x-2.5 transition font-bold text-xs cursor-pointer min-h-[40px]"
+            className="w-full px-3.5 py-2.5 text-left text-rose-400 hover:bg-rose-500/10 rounded-lg flex items-center space-x-2.5 transition font-semibold text-xs cursor-pointer min-h-[40px]"
           >
-            <LogOut className="w-4 h-4 text-rose-500" />
+            <LogOut className="w-4 h-4 text-rose-400" />
             <span>Sign out from Station</span>
           </button>
         </div>

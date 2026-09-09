@@ -9,9 +9,9 @@ import {
   LogOut,
   Settings,
   ChevronDown,
-  PlusCircle,
   CheckCircle2,
   ScanBarcode,
+  Search,
   Menu,
 } from 'lucide-react';
 import { BarcodeScannerModal } from '../scanner/BarcodeScannerModal';
@@ -63,10 +63,24 @@ export const Header: React.FC = () => {
     };
   }, [setActiveTab]);
 
+  // Chrome (permanently dark header bar) badge treatment — independent of content theme
+  const getRoleBadgeStyleChrome = (role?: string) => {
+    switch (role) {
+      case 'owner':
+        return 'bg-brand-500/15 text-brand-300 border-brand-400/25';
+      case 'purchasing':
+        return 'bg-purple-500/15 text-purple-300 border-purple-400/25';
+      case 'staff':
+      default:
+        return 'bg-white/8 text-white/60 border-white/12';
+    }
+  };
+
+  // Panel (theme-reactive dropdown surface) badge treatment
   const getRoleBadgeStyle = (role?: string) => {
     switch (role) {
       case 'owner':
-        return 'bg-amber-100/80 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border-amber-300/80 dark:border-amber-800/50';
+        return 'bg-brand-100/80 dark:bg-brand-950/40 text-brand-800 dark:text-brand-300 border-brand-300/80 dark:border-brand-800/50';
       case 'purchasing':
         return 'bg-purple-100/80 dark:bg-purple-950/40 text-purple-800 dark:text-purple-300 border-purple-300/80 dark:border-purple-800/50';
       case 'staff':
@@ -94,15 +108,15 @@ export const Header: React.FC = () => {
   };
 
   return (
-    <header className="glass-header sticky top-0 z-40 transition-colors">
+    <header className="glass-header sticky top-0 z-40">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          {/* Left: Brand Identity & Store Branch Pill */}
-          <div className="flex items-center space-x-2 sm:space-x-4">
+        <div className="flex items-center justify-between h-16 gap-4">
+          {/* Left: Brand Identity */}
+          <div className="flex items-center space-x-2 sm:space-x-4 shrink-0">
             <button
               type="button"
               onClick={() => setMobileNavOpen(true)}
-              className="md:hidden p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer min-w-[40px] min-h-[40px] flex items-center justify-center -ml-1"
+              className="md:hidden p-2 rounded-xl text-white/70 hover:bg-white/10 hover:text-white transition cursor-pointer min-w-[40px] min-h-[40px] flex items-center justify-center -ml-1"
               aria-label="Open mobile menu"
             >
               <Menu className="w-5 h-5" />
@@ -112,60 +126,39 @@ export const Header: React.FC = () => {
               onClick={() => setActiveTab('dashboard')}
               className="flex items-center space-x-3 cursor-pointer group"
             >
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 via-amber-600 to-amber-700 flex items-center justify-center text-white shadow-sm shadow-amber-600/30 group-hover:scale-105 transition-transform duration-200">
-                <Package className="w-5 h-5 stroke-[2.2]" />
+              <div className="w-9 h-9 rounded-lg bg-brand-600 flex items-center justify-center text-white shadow-chrome group-hover:bg-brand-500 transition-colors duration-150">
+                <Package className="w-[18px] h-[18px] stroke-[2.2]" />
               </div>
-              <div>
-                <div className="flex items-center space-x-2">
-                  <span className="font-extrabold text-xl tracking-tight text-slate-900">
-                    Smart<span className="text-amber-600 dark:text-amber-500">Stock</span>
-                  </span>
-                  <span className="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/50">
-                    Artisan OS
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Store Branch Live Status */}
-            <div className="hidden md:flex items-center space-x-2.5 px-3 py-1.5 rounded-xl bg-slate-100/80 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60 text-xs text-slate-600 dark:text-slate-300">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              <span className="font-bold text-[15px] tracking-tight text-white">
+                Smart<span className="text-brand-400">Stock</span>
               </span>
-              <span className="font-semibold text-slate-800 dark:text-slate-200">Sweet Crust Bakery</span>
-              <span className="text-slate-300 dark:text-slate-600">•</span>
-              <span className="text-slate-500 dark:text-slate-400 font-mono text-[11px]">Branch #104</span>
             </div>
           </div>
 
-          {/* Right: Quick Action, Alert Pill, Persona Switcher */}
-          <div className="flex items-center space-x-3">
-            {/* Quick Action: Record Sale Shortcut */}
+          {/* Right: Search, Quick Actions, Alert Pill, Persona Switcher */}
+          <div className="flex items-center space-x-2">
+            {/* Command Palette Trigger */}
             <button
-              onClick={() => {
-                setActiveTab('inventory');
-                showToast('info', 'Navigate to Inventory to log POS transactions.');
-              }}
-              className="hidden sm:inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-amber-900 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/30 hover:bg-amber-100/80 dark:hover:bg-amber-900/40 border border-amber-200/80 dark:border-amber-800/50 transition-all cursor-pointer shadow-2xs active:scale-95"
-              title="Shortcut: Press S"
+              onClick={() => window.dispatchEvent(new CustomEvent('open-command-palette'))}
+              className="hidden md:flex items-center space-x-2.5 px-3 py-1.5 rounded-lg text-xs bg-white/5 hover:bg-white/10 border border-white/8 hover:border-white/15 transition-all cursor-pointer w-48 lg:w-64 group"
+              title="Search or jump to... (Ctrl/Cmd K)"
             >
-              <PlusCircle className="w-3.5 h-3.5 text-amber-700 dark:text-amber-400" />
-              <span>Log Sale</span>
-              <kbd className="hidden lg:inline-block font-mono text-[9px] px-1 py-0.2 rounded bg-amber-200/60 dark:bg-amber-900/50 text-amber-900 dark:text-amber-300 border border-amber-300/60 dark:border-amber-700/50">
-                S
+              <Search className="w-3.5 h-3.5 text-white/35 group-hover:text-white/55 transition-colors shrink-0" />
+              <span className="text-white/35 group-hover:text-white/55 transition-colors flex-1 text-left truncate">Search or jump to...</span>
+              <kbd className="font-mono text-[9px] px-1.5 py-0.5 rounded border border-white/12 text-white/40 shrink-0">
+                ⌘K
               </kbd>
             </button>
 
             {/* Quick Action: Barcode Receiving Terminal */}
             <button
               onClick={() => setIsScannerOpen(true)}
-              className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-800 dark:text-slate-200 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 transition-all cursor-pointer shadow-2xs active:scale-95"
+              className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white/75 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/15 transition-all cursor-pointer active:scale-95"
               title="Shortcut: Press R"
             >
-              <ScanBarcode className="w-3.5 h-3.5 text-slate-700 dark:text-slate-300" />
+              <ScanBarcode className="w-3.5 h-3.5 text-white/60" />
               <span>Receiving</span>
-              <kbd className="hidden lg:inline-block font-mono text-[9px] px-1 py-0.2 rounded bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600">
+              <kbd className="hidden lg:inline-block font-mono text-[9px] px-1 py-0.2 rounded bg-white/10 text-white/60 border border-white/15">
                 R
               </kbd>
             </button>
@@ -173,18 +166,18 @@ export const Header: React.FC = () => {
             {/* Alert Indicator Pill */}
             <button
               onClick={() => setActiveTab('alerts')}
-              className={`relative inline-flex items-center px-3 py-1.5 rounded-xl transition cursor-pointer text-xs font-semibold ${
+              className={`relative inline-flex items-center px-3 py-1.5 rounded-lg transition cursor-pointer text-xs font-semibold border ${
                 criticalCount > 0
-                  ? 'text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/30 hover:bg-rose-100 dark:hover:bg-rose-900/40 border border-rose-200/80 dark:border-rose-800/50 shadow-2xs'
+                  ? 'text-rose-300 bg-rose-500/10 hover:bg-rose-500/15 border-rose-400/25'
                   : activeAlertsCount > 0
-                  ? 'text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/30 hover:bg-amber-100 dark:hover:bg-amber-900/40 border border-amber-200/80 dark:border-amber-800/50'
-                  : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100/80 dark:hover:bg-slate-800 border border-slate-200/60 dark:border-slate-700'
+                  ? 'text-amber-300 bg-amber-500/10 hover:bg-amber-500/15 border-amber-400/25'
+                  : 'text-white/55 hover:bg-white/10 border-white/10'
               }`}
               title="View Active Threshold Alerts"
             >
               <AlertTriangle
                 className={`w-4 h-4 ${
-                  criticalCount > 0 ? 'text-rose-600 dark:text-rose-400 animate-pulse' : 'text-slate-500 dark:text-slate-400'
+                  criticalCount > 0 ? 'text-rose-400 animate-pulse' : 'text-white/40'
                 }`}
               />
               <span className="ml-1.5 hidden sm:inline">Alerts</span>
@@ -192,8 +185,8 @@ export const Header: React.FC = () => {
                 <span
                   className={`ml-1.5 text-[10px] font-extrabold px-1.5 py-0.2 rounded-full ${
                     criticalCount > 0
-                      ? 'bg-rose-600 text-white'
-                      : 'bg-amber-500 text-white'
+                      ? 'bg-rose-500 text-white'
+                      : 'bg-amber-500 text-ink-950'
                   }`}
                 >
                   {activeAlertsCount}
@@ -205,24 +198,24 @@ export const Header: React.FC = () => {
             <div className="relative" ref={menuRef}>
               <button
                 onClick={() => setMenuOpen(!menuOpen)}
-                className="flex items-center space-x-2.5 p-1.5 pr-3 rounded-xl border border-slate-200/80 dark:border-slate-700 bg-white/90 dark:bg-slate-800/90 hover:bg-white dark:hover:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-600 transition shadow-2xs cursor-pointer text-xs"
+                className="flex items-center space-x-2.5 p-1.5 pr-3 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/15 transition cursor-pointer text-xs"
               >
-                <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-slate-800 to-slate-950 text-white font-bold flex items-center justify-center text-xs shadow-2xs">
+                <div className="w-7 h-7 rounded-md bg-white/10 border border-white/10 text-white font-bold flex items-center justify-center text-xs">
                   {currentUser?.avatarInitial || 'U'}
                 </div>
                 <div className="text-left hidden sm:block">
-                  <span className="font-bold text-slate-800 dark:text-slate-200 block leading-tight">
+                  <span className="font-semibold text-white/90 block leading-tight">
                     {currentUser?.name || 'Account'}
                   </span>
                   <span
-                    className={`text-[9px] font-extrabold uppercase px-1.5 py-0.2 rounded border inline-block mt-0.5 ${getRoleBadgeStyle(
+                    className={`text-[9px] font-extrabold uppercase px-1.5 py-0.2 rounded border inline-block mt-0.5 ${getRoleBadgeStyleChrome(
                       currentUser?.role
                     )}`}
                   >
                     {getRoleLabel(currentUser?.role)}
                   </span>
                 </div>
-                <ChevronDown className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
+                <ChevronDown className="w-3.5 h-3.5 text-white/40" />
               </button>
 
               {/* Dropdown Menu */}
@@ -263,7 +256,7 @@ export const Header: React.FC = () => {
                             }
                             className={`w-full px-2.5 py-1.5 rounded-lg flex items-center justify-between text-left transition cursor-pointer ${
                               isCurrent
-                                ? 'bg-amber-50/90 text-amber-900 font-bold border border-amber-200/70'
+                                ? 'bg-brand-50/90 text-brand-900 font-bold border border-brand-200/70'
                                 : 'text-slate-700 hover:bg-slate-100'
                             }`}
                           >
@@ -279,7 +272,7 @@ export const Header: React.FC = () => {
                               </div>
                             </div>
                             {isCurrent && (
-                              <CheckCircle2 className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                              <CheckCircle2 className="w-3.5 h-3.5 text-brand-600 shrink-0" />
                             )}
                           </button>
                         );

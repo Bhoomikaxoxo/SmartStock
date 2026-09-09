@@ -1,28 +1,28 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
   <defs>
     <linearGradient id="ss-amber-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#F59E0B" />
-      <stop offset="100%" stop-color="#C97A2B" />
+      <stop offset="0%" stop-color="#CC7C3D" />
+      <stop offset="100%" stop-color="#96430C" />
     </linearGradient>
     <linearGradient id="ss-box-top" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#FDE68A" />
-      <stop offset="100%" stop-color="#F59E0B" />
+      <stop offset="0%" stop-color="#DE9E68" />
+      <stop offset="100%" stop-color="#B0530F" />
     </linearGradient>
     <linearGradient id="ss-accent-star" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#FFFFFF" />
-      <stop offset="100%" stop-color="#FEF3C7" />
+      <stop offset="100%" stop-color="#F6E1CE" />
     </linearGradient>
   </defs>
   <!-- Rounded Brand Base Tile -->
-  <rect width="48" height="48" rx="12" fill="url(#ss-amber-grad)" />
+  <rect width="48" height="48" rx="10" fill="url(#ss-amber-grad)" />
   <!-- Top Face of Inventory Box -->
   <path d="M24 11 L36 17.5 L24 24 L12 17.5 Z" fill="url(#ss-box-top)" />
   <!-- Left Face -->
-  <path d="M12 17.5 L24 24 V36.5 L12 30 Z" fill="#B46C24" />
+  <path d="M12 17.5 L24 24 V36.5 L12 30 Z" fill="#7A370D" />
   <!-- Right Face -->
-  <path d="M24 24 L36 17.5 V30 L24 36.5 Z" fill="#92400E" />
+  <path d="M24 24 L36 17.5 V30 L24 36.5 Z" fill="#632D0F" />
   <!-- Central Stock Sparkle -->
   <path d="M24 13 L25.3 16.2 L28.5 17.5 L25.3 18.8 L24 22 L22.7 18.8 L19.5 17.5 L22.7 16.2 Z" fill="url(#ss-accent-star)" />
   <!-- Subtle Front Seam -->
-  <line x1="24" y1="24" x2="24" y2="36.5" stroke="#FDE68A" stroke-width="1" stroke-linecap="round" opacity="0.4" />
+  <line x1="24" y1="24" x2="24" y2="36.5" stroke="#DE9E68" stroke-width="1" stroke-linecap="round" opacity="0.4" />
 </svg>

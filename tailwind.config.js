@@ -9,17 +9,24 @@ export default {
     extend: {
       colors: {
         brand: {
-          50: '#fffbeb',
-          100: '#fef3c7',
-          200: '#fde68a',
-          300: '#fcd34d',
-          400: '#fbbf24',
-          500: '#f59e0b',
-          600: '#d97706',
-          700: '#b45309',
-          800: '#92400e',
-          900: '#78350f',
-          950: '#451a03',
+          50: '#fbf2ea',
+          100: '#f6e1ce',
+          200: '#ebc29d',
+          300: '#de9e68',
+          400: '#cc7c3d',
+          500: '#b0530f',
+          600: '#96430c',
+          700: '#7a370d',
+          800: '#632d0f',
+          900: '#4f250f',
+          950: '#2b1207',
+        },
+        ink: {
+          700: '#2a2c33',
+          800: '#1c1e24',
+          850: '#16181d',
+          900: '#111318',
+          950: '#0a0b0e',
         },
         stock: {
           healthy: '#059669',
@@ -29,16 +36,14 @@ export default {
         }
       },
       fontFamily: {
-        sans: ['"Plus Jakarta Sans"', 'Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        sans: ['"Inter"', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
         mono: ['"JetBrains Mono"', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace'],
       },
       boxShadow: {
-        'card': '0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05)',
-        'card-hover': '0 10px 25px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04)',
-        'elevated': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
-        'glow-amber': '0 0 20px -2px rgba(217, 119, 6, 0.25)',
-        'glow-emerald': '0 0 20px -2px rgba(5, 150, 105, 0.25)',
-        'glow-rose': '0 0 20px -2px rgba(225, 29, 72, 0.25)',
+        'card': '0 1px 2px 0 rgba(17, 19, 24, 0.04), 0 0 0 1px rgba(17, 19, 24, 0.045)',
+        'card-hover': '0 4px 14px -4px rgba(17, 19, 24, 0.12), 0 0 0 1px rgba(17, 19, 24, 0.06)',
+        'elevated': '0 16px 40px -12px rgba(10, 11, 14, 0.28), 0 0 0 1px rgba(17, 19, 24, 0.06)',
+        'chrome': '0 1px 0 0 rgba(255, 255, 255, 0.06) inset, 0 1px 12px 0 rgba(0, 0, 0, 0.35)',
       }
     },
   },

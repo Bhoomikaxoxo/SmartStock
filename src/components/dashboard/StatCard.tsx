@@ -52,19 +52,19 @@ export const StatCard: React.FC<StatCardProps> = ({
   return (
     <div
       onClick={onClick}
-      className={`relative overflow-hidden rounded-2xl p-5 border shadow-card hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200 ${theme.bg} ${theme.border} ${
+      className={`relative overflow-hidden rounded-2xl pl-6 pr-5 py-5 border shadow-card hover:shadow-card-hover transition-all duration-150 ${theme.bg} ${theme.border} ${
         onClick ? 'cursor-pointer group' : ''
       }`}
     >
-      {/* Top micro accent bar (Original light theme; hidden in dark mode) */}
-      <div className={`absolute top-0 left-0 right-0 h-1 ${theme.accentBar} dark:hidden`} />
+      {/* Left accent bar — always visible, editorial signal of card status */}
+      <div className={`absolute top-0 bottom-0 left-0 w-[3px] ${theme.accentBar}`} />
 
       <div className="flex items-start justify-between">
         <div className="flex-1 pr-2">
           <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
             {title}
           </p>
-          <h3 className="text-2xl sm:text-3xl font-black text-slate-900 mt-1.5 tracking-tight font-mono tabular-nums">
+          <h3 className="text-2xl sm:text-3xl font-bold text-slate-900 mt-1.5 tracking-tight font-mono tabular-nums">
             {value}
           </h3>
           {subtitle && (
@@ -75,7 +75,7 @@ export const StatCard: React.FC<StatCardProps> = ({
         </div>
         {Icon && (
           <div
-            className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-transform duration-200 group-hover:scale-105 ${theme.iconBg}`}
+            className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-transform duration-150 group-hover:scale-105 ${theme.iconBg}`}
           >
             <Icon className="w-5 h-5 stroke-[2]" />
           </div>
