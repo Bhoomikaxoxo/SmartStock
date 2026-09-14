@@ -432,4 +432,4 @@ npx tsx verify_fifo_engine.ts
 
 This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
 
-Developed with ❤️ for bakers, pastry chefs, and food manufacturing operators striving for zero waste and maximum operational craft.
+Built with ❤️ for bakers, pastry chefs, and food manufacturing teams committed to minimizing waste while maximizing operational excellence.
