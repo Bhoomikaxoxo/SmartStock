@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Product,
   SalesRecord,
@@ -28,10 +28,11 @@ import {
   generateSeedSales,
 } from '../data/seedData';
 import {
-  computeReorderRecommendation,
+  computeAllReorderRecommendations,
   evaluateDynamicAlerts,
   BUFFER_DAYS_DEFAULT,
 } from '../services/reorderEngine';
+import { saveDebounced, flushPendingStorage } from '../utils/debouncedStorage';
 import { useAuth } from './AuthContext';
 import { useToast } from './ToastContext';
 
@@ -92,6 +93,7 @@ const STORAGE_KEYS = {
   SALES: 'smartstock_sales_v3',
   SUPPLIERS: 'smartstock_suppliers_v3',
   ALERTS: 'smartstock_alerts_v3',
+  RESOLVED_ALERTS: 'smartstock_resolved_alerts_v4',
   STOCKOUTS: 'smartstock_stockouts_v3',
   POS: 'smartstock_pos_v3',
   ACTIVITIES: 'smartstock_activities_v3',
@@ -122,9 +124,30 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return saved ? JSON.parse(saved) : INITIAL_SUPPLIERS;
   });
 
-  const [alerts, setAlerts] = useState<Alert[]>(() => {
+  // Base/simulated alerts
+  const [customAlerts, setCustomAlerts] = useState<Alert[]>(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.ALERTS);
     return saved ? JSON.parse(saved) : INITIAL_ALERTS;
+  });
+
+  // Persisted record of resolved alert IDs with resolved_at timestamp
+  const [resolvedAlertMap, setResolvedAlertMap] = useState<Record<string, { resolved: boolean; resolved_at: string }>>(() => {
+    const saved = localStorage.getItem(STORAGE_KEYS.RESOLVED_ALERTS);
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return {};
+      }
+    }
+    // Pre-populate with initially resolved alerts if any
+    const initialMap: Record<string, { resolved: boolean; resolved_at: string }> = {};
+    INITIAL_ALERTS.forEach((a) => {
+      if (a.resolved) {
+        initialMap[a.id] = { resolved: true, resolved_at: a.resolved_at || a.created_at };
+      }
+    });
+    return initialMap;
   });
 
   const [stockouts, setStockouts] = useState<StockoutEvent[]>(() => {
@@ -212,70 +235,83 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return parseFloat(multiplier.toFixed(2));
   }, [surgeModifiers]);
 
-  // Sync to localStorage
+  // Debounced persistence to avoid blocking main thread on high-frequency state updates
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(products));
+    saveDebounced(STORAGE_KEYS.PRODUCTS, products);
   }, [products]);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.SALES, JSON.stringify(sales));
+    saveDebounced(STORAGE_KEYS.SALES, sales);
   }, [sales]);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.ALERTS, JSON.stringify(alerts));
-  }, [alerts]);
+    saveDebounced(STORAGE_KEYS.ALERTS, customAlerts);
+  }, [customAlerts]);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.STOCKOUTS, JSON.stringify(stockouts));
+    saveDebounced(STORAGE_KEYS.RESOLVED_ALERTS, resolvedAlertMap);
+  }, [resolvedAlertMap]);
+
+  useEffect(() => {
+    saveDebounced(STORAGE_KEYS.STOCKOUTS, stockouts);
   }, [stockouts]);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.POS, JSON.stringify(purchaseOrders));
+    saveDebounced(STORAGE_KEYS.POS, purchaseOrders);
   }, [purchaseOrders]);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.ACTIVITIES, JSON.stringify(activities));
+    saveDebounced(STORAGE_KEYS.ACTIVITIES, activities);
   }, [activities]);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.FINANCIAL, JSON.stringify(financialConfig));
+    saveDebounced(STORAGE_KEYS.FINANCIAL, financialConfig);
   }, [financialConfig]);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.RECIPES, JSON.stringify(recipes));
+    saveDebounced(STORAGE_KEYS.RECIPES, recipes);
   }, [recipes]);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.WASTE_LOGS, JSON.stringify(wasteLogs));
+    saveDebounced(STORAGE_KEYS.WASTE_LOGS, wasteLogs);
   }, [wasteLogs]);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.LOTS, JSON.stringify(stockLots));
+    saveDebounced(STORAGE_KEYS.LOTS, stockLots);
   }, [stockLots]);
 
-  // Synchronize alerts with dynamic evaluator whenever products or sales change
-  useEffect(() => {
-    const dynamicAlerts = evaluateDynamicAlerts(products, sales, suppliers);
-    setAlerts((prevAlerts) => {
-      const existingMap = new Map(prevAlerts.map((a) => [a.id, a]));
-      dynamicAlerts.forEach((da) => {
-        if (!existingMap.has(da.id)) {
-          existingMap.set(da.id, da);
-        }
-      });
-      return Array.from(existingMap.values());
-    });
-  }, [products, sales, suppliers]);
+  // Pure derived alerts: Evaluates inventory thresholds & reconciles resolution status
+  // Completely eliminates cascading setState inside useEffect
+  const alerts = useMemo<Alert[]>(() => {
+    const dynamic = evaluateDynamicAlerts(products, sales, suppliers);
+    const combinedMap = new Map<string, Alert>();
 
-  // Reorder recommendations computation (with surge multiplier applied to burn rates)
-  const reorderRecommendations = useMemo(() => {
-    return products.map((product) => {
-      const supplier = suppliers.find((s) => s.id === product.supplier_id);
-      return computeReorderRecommendation(product, sales, supplier, BUFFER_DAYS_DEFAULT, surgeMultiplier);
+    // Register custom/manual simulation alerts first
+    customAlerts.forEach((a) => combinedMap.set(a.id, a));
+
+    // Register dynamic evaluation alerts
+    dynamic.forEach((da) => {
+      if (!combinedMap.has(da.id)) {
+        combinedMap.set(da.id, da);
+      }
     });
+
+    // Reconcile user resolution records
+    return Array.from(combinedMap.values()).map((a) => {
+      const res = resolvedAlertMap[a.id];
+      if (res) {
+        return { ...a, resolved: res.resolved, resolved_at: res.resolved_at };
+      }
+      return a;
+    });
+  }, [products, sales, suppliers, customAlerts, resolvedAlertMap]);
+
+  // Optimized O(N + M) reorder recommendations computation
+  const reorderRecommendations = useMemo(() => {
+    return computeAllReorderRecommendations(products, sales, suppliers, BUFFER_DAYS_DEFAULT, surgeMultiplier);
   }, [products, sales, suppliers, surgeMultiplier]);
 
-  const addActivity = (item: Omit<ActivityItem, 'id' | 'timestamp' | 'actorName' | 'actorRole'>) => {
+  const addActivity = useCallback((item: Omit<ActivityItem, 'id' | 'timestamp' | 'actorName' | 'actorRole'>) => {
     const newActivity: ActivityItem = {
       ...item,
       id: `act-${Date.now()}-${Math.random().toString(36).substring(2, 5)}`,
@@ -284,9 +320,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       timestamp: 'Just now',
     };
     setActivities((prev) => [newActivity, ...prev.slice(0, 24)]);
-  };
+  }, [currentUser]);
 
-  const addProduct = (productData: Omit<Product, 'id' | 'created_at'>) => {
+  const addProduct = useCallback((productData: Omit<Product, 'id' | 'created_at'>) => {
     const newProduct: Product = {
       ...productData,
       id: `prod-${Date.now()}`,
@@ -299,9 +335,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       description: `${currentUser?.name || 'Staff'} (${currentUser?.role || 'staff'}) added "${newProduct.name}" (${newProduct.current_stock} ${newProduct.unit}).`,
     });
     showToast('success', `Added "${newProduct.name}" to inventory.`);
-  };
+  }, [currentUser, addActivity, showToast]);
 
-  const updateStock = (productId: string, newStock: number, reason: string = 'Stock adjustment') => {
+  const updateStock = useCallback((productId: string, newStock: number, reason: string = 'Stock adjustment') => {
     if (newStock < 0) {
       showToast('error', 'Stock count cannot be negative.');
       return;
@@ -323,86 +359,86 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       })
     );
     showToast('success', 'Stock adjustment saved successfully.');
-  };
+  }, [currentUser, addActivity, showToast]);
 
-  const recordSale = (productId: string, unitsSold: number) => {
-    const product = products.find((p) => p.id === productId);
-    if (!product) return { success: false, error: 'Product not found' };
-
+  const recordSale = useCallback((productId: string, unitsSold: number) => {
+    let result: { success: boolean; error?: string } = { success: false, error: 'Product not found' };
     if (unitsSold <= 0) {
       return { success: false, error: 'Please enter a valid positive quantity.' };
     }
 
-    if (unitsSold > product.current_stock) {
-      return {
-        success: false,
-        error: `Cannot sell ${unitsSold} ${product.unit}. Only ${product.current_stock} ${product.unit} available in stock.`,
+    setProducts((prev) => {
+      const product = prev.find((p) => p.id === productId);
+      if (!product) return prev;
+
+      if (unitsSold > product.current_stock) {
+        result = {
+          success: false,
+          error: `Cannot sell ${unitsSold} ${product.unit}. Only ${product.current_stock} ${product.unit} available in stock.`,
+        };
+        return prev;
+      }
+
+      const revenue = Math.round(unitsSold * product.selling_price);
+      const today = new Date().toISOString().split('T')[0];
+
+      const newSale: SalesRecord = {
+        id: `sale-${Date.now()}`,
+        product_id: productId,
+        date: today,
+        units_sold: unitsSold,
+        revenue,
       };
-    }
+      setSales((salesPrev) => [newSale, ...salesPrev]);
 
-    const revenue = Math.round(unitsSold * product.selling_price);
-    const today = new Date().toISOString().split('T')[0];
+      const updatedStock = product.current_stock - unitsSold;
 
-    const newSale: SalesRecord = {
-      id: `sale-${Date.now()}`,
-      product_id: productId,
-      date: today,
-      units_sold: unitsSold,
-      revenue,
-    };
-    setSales((prev) => [newSale, ...prev]);
+      addActivity({
+        type: 'sale',
+        title: `Sale Recorded: ${product.name}`,
+        description: `${currentUser?.name || 'Staff'} (${currentUser?.role || 'staff'}) recorded sale: ${unitsSold} ${product.unit} of ${product.name} (₹${revenue.toLocaleString('en-IN')}). Remaining: ${updatedStock}.`,
+      });
 
-    const updatedStock = product.current_stock - unitsSold;
-    setProducts((prev) =>
-      prev.map((p) => (p.id === productId ? { ...p, current_stock: updatedStock } : p))
-    );
+      if (updatedStock === 0) {
+        const newStockout: StockoutEvent = {
+          id: `so-${Date.now()}`,
+          product_id: productId,
+          product_name: product.name,
+          date: today,
+          estimated_units_lost: Math.round(unitsSold * 1.5),
+          estimated_revenue_lost: Math.round(unitsSold * 1.5 * product.selling_price),
+          notes: `Depleted to 0 units during store sale.`,
+        };
+        setStockouts((soPrev) => [newStockout, ...soPrev]);
+        addActivity({
+          type: 'stockout',
+          title: `OUT OF STOCK: ${product.name}`,
+          description: `Product inventory reached 0 units. Immediate restock required.`,
+        });
+      }
 
-    addActivity({
-      type: 'sale',
-      title: `Sale Recorded: ${product.name}`,
-      description: `${currentUser?.name || 'Staff'} (${currentUser?.role || 'staff'}) recorded sale: ${unitsSold} ${product.unit} of ${product.name} (₹${revenue.toLocaleString('en-IN')}). Remaining: ${updatedStock}.`,
+      showToast('success', `Recorded sale of ${unitsSold} ${product.unit} (${product.name}).`);
+      result = { success: true };
+      return prev.map((p) => (p.id === productId ? { ...p, current_stock: updatedStock } : p));
     });
 
-    if (updatedStock === 0) {
-      const newStockout: StockoutEvent = {
-        id: `so-${Date.now()}`,
-        product_id: productId,
-        product_name: product.name,
-        date: today,
-        estimated_units_lost: Math.round(unitsSold * 1.5),
-        estimated_revenue_lost: Math.round(unitsSold * 1.5 * product.selling_price),
-        notes: `Depleted to 0 units during store sale.`,
-      };
-      setStockouts((prev) => [newStockout, ...prev]);
-      addActivity({
-        type: 'stockout',
-        title: `OUT OF STOCK: ${product.name}`,
-        description: `Product inventory reached 0 units. Immediate restock required.`,
-      });
-    }
+    return result;
+  }, [currentUser, addActivity, showToast]);
 
-    showToast('success', `Recorded sale of ${unitsSold} ${product.unit} (${product.name}).`);
-    return { success: true };
-  };
+  const resolveAlert = useCallback((alertId: string) => {
+    setResolvedAlertMap((prev) => ({
+      ...prev,
+      [alertId]: { resolved: true, resolved_at: new Date().toISOString() },
+    }));
+    addActivity({
+      type: 'alert_resolved',
+      title: 'Alert Resolved',
+      description: `${currentUser?.name || 'Staff'} (${currentUser?.role || 'staff'}) marked alert resolved.`,
+    });
+    showToast('success', 'Alert marked as resolved.');
+  }, [currentUser, addActivity, showToast]);
 
-  const resolveAlert = (alertId: string) => {
-    const alert = alerts.find((a) => a.id === alertId);
-    setAlerts((prev) =>
-      prev.map((a) =>
-        a.id === alertId ? { ...a, resolved: true, resolved_at: new Date().toISOString() } : a
-      )
-    );
-    if (alert) {
-      addActivity({
-        type: 'alert_resolved',
-        title: 'Alert Resolved',
-        description: `${currentUser?.name || 'Staff'} (${currentUser?.role || 'staff'}) marked alert resolved: ${alert.message.substring(0, 60)}...`,
-      });
-      showToast('success', 'Alert marked as resolved.');
-    }
-  };
-
-  const createPurchaseOrder = (poData: {
+  const createPurchaseOrder = useCallback((poData: {
     supplier_id: string;
     product_id: string;
     quantity: number;
@@ -443,14 +479,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     setPurchaseOrders((prev) => [newPO, ...prev]);
 
-    // Resolve matching alerts
-    setAlerts((prev) =>
-      prev.map((a) =>
-        a.product_id === poData.product_id && a.type === 'reorder_due'
-          ? { ...a, resolved: true, resolved_at: today.toISOString() }
-          : a
-      )
-    );
+    // Mark matching reorder alerts as resolved
+    setResolvedAlertMap((prev) => {
+      const updated = { ...prev };
+      alerts
+        .filter((a) => a.product_id === poData.product_id && a.type === 'reorder_due')
+        .forEach((a) => {
+          updated[a.id] = { resolved: true, resolved_at: today.toISOString() };
+        });
+      return updated;
+    });
 
     addActivity({
       type: 'reorder',
@@ -460,9 +498,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     showToast('success', `Purchase Order ${newPO.po_number} sent to ${newPO.supplier_name}.`);
     return newPO;
-  };
+  }, [currentUser, products, suppliers, alerts, addActivity, showToast]);
 
-  const produceBatch = (
+  const produceBatch = useCallback((
     recipeId: string,
     batchCount: number
   ): { success: boolean; shortages?: string[]; fifoDetails?: string[] } => {
@@ -524,14 +562,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       })
     );
 
-    // FIFO LOT DEDUCTION ENGINE:
-    // Deduct from earliest-expiring active lots first (expiry_date ASC)
+    // FIFO LOT DEDUCTION ENGINE
     const fifoDetails: string[] = [];
     setStockLots((prevLots) => {
       const updatedLots = prevLots.map((l) => ({ ...l }));
       for (const item of deductions) {
         let remaining = item.needed;
-        // Sort matching active lots for this product by expiry_date ASC
         const matchingLots = updatedLots
           .filter((l) => l.product_id === item.product.id && l.quantity > 0)
           .sort((a, b) => a.expiry_date.localeCompare(b.expiry_date));
@@ -550,8 +586,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return updatedLots;
     });
 
-    // CRITICAL RECONCILIATION: write consumption records into rolling-window sales dataset
-    // so the forecasting and reorder engine immediately reflects production burn rate
+    // Write consumption records into rolling-window sales dataset
     const newConsumptionRecords: SalesRecord[] = deductions.map((d) => ({
       id: `consume-${Date.now()}-${d.product.id}`,
       product_id: d.product.id,
@@ -575,9 +610,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       `Baked ${batchCount} batch(es) of ${recipe.name}. FIFO auto-consumed from oldest batches.`
     );
     return { success: true, fifoDetails };
-  };
+  }, [recipes, products, currentUser, addActivity, showToast]);
 
-  const logWaste = (
+  const logWaste = useCallback((
     productId: string,
     quantity: number,
     reason: WasteReason,
@@ -665,9 +700,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     showToast('success', `Logged ${quantity} ${product.unit} ${product.name} as waste (${reason}).`);
     return { success: true };
-  };
+  }, [products, currentUser, addActivity, showToast]);
 
-  const receiveStock = (
+  const receiveStock = useCallback((
     productId: string,
     quantity: number,
     poId?: string,
@@ -731,13 +766,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
 
     // Resolve matching low_stock / reorder_due alerts
-    setAlerts((prev) =>
-      prev.map((a) =>
-        a.product_id === productId && !a.resolved
-          ? { ...a, resolved: true, resolved_at: new Date().toISOString() }
-          : a
-      )
-    );
+    setResolvedAlertMap((prev) => {
+      const updated = { ...prev };
+      alerts
+        .filter((a) => a.product_id === productId && !a.resolved)
+        .forEach((a) => {
+          updated[a.id] = { resolved: true, resolved_at: new Date().toISOString() };
+        });
+      return updated;
+    });
 
     addActivity({
       type: 'restock',
@@ -749,15 +786,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       'success',
       `Received ${quantity} ${product.unit} of ${product.name}. Registered lot ${assignedLotNum} (Exp: ${assignedExpiry}).`
     );
-  };
+  }, [products, alerts, currentUser, addActivity, showToast]);
 
-  const getLotsForProduct = (productId: string): StockLot[] => {
+  const getLotsForProduct = useCallback((productId: string): StockLot[] => {
     return stockLots.filter((lot) => lot.product_id === productId);
-  };
+  }, [stockLots]);
 
-  const getExpiringLots = (withinDays: number = 7) => {
+  const getExpiringLots = useCallback((withinDays: number = 7) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+    const productMap = new Map(products.map((p) => [p.id, p]));
 
     return stockLots
       .filter((lot) => lot.quantity > 0)
@@ -765,7 +803,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         const exp = new Date(lot.expiry_date);
         exp.setHours(0, 0, 0, 0);
         const diffDays = Math.ceil((exp.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-        const product = products.find((p) => p.id === lot.product_id);
+        const product = productMap.get(lot.product_id);
         return {
           ...lot,
           product,
@@ -774,9 +812,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       })
       .filter((lot) => lot.daysUntilExpiry <= withinDays)
       .sort((a, b) => a.daysUntilExpiry - b.daysUntilExpiry);
-  };
+  }, [stockLots, products]);
 
-  const addStockLot = (lotData: Omit<StockLot, 'id' | 'status'>) => {
+  const addStockLot = useCallback((lotData: Omit<StockLot, 'id' | 'status'>) => {
     const newLot: StockLot = {
       ...lotData,
       id: `lot-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
@@ -806,13 +844,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       description: `${currentUser?.name || 'Staff'} registered new lot ${newLot.lot_number} (${newLot.quantity} units, exp: ${newLot.expiry_date}).`,
     });
     showToast('success', `Added lot ${newLot.lot_number} (${newLot.quantity} units).`);
-  };
+  }, [currentUser, addActivity, showToast]);
 
-  const updateFinancialConfig = (config: Partial<FinancialImpactConfig>) => {
+  const updateFinancialConfig = useCallback((config: Partial<FinancialImpactConfig>) => {
     setFinancialConfig((prev) => ({ ...prev, ...config }));
-  };
+  }, []);
 
-  const simulateWeekendEggStockout = () => {
+  const simulateWeekendEggStockout = useCallback(() => {
     updateStock('prod-eggs', 6, 'Friday morning pre-weekend stock count alert');
     
     const newAlert: Alert = {
@@ -825,24 +863,29 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       created_at: new Date().toISOString().split('T')[0],
       resolved: false,
     };
-    setAlerts((prev) => [newAlert, ...prev]);
+    setCustomAlerts((prev) => [newAlert, ...prev]);
     setActiveTab('alerts');
-  };
+  }, [updateStock]);
 
-  const resetToDemoData = () => {
+  const resetToDemoData = useCallback(() => {
+    flushPendingStorage();
+
     localStorage.removeItem(STORAGE_KEYS.PRODUCTS);
     localStorage.removeItem(STORAGE_KEYS.SALES);
     localStorage.removeItem(STORAGE_KEYS.ALERTS);
+    localStorage.removeItem(STORAGE_KEYS.RESOLVED_ALERTS);
     localStorage.removeItem(STORAGE_KEYS.STOCKOUTS);
     localStorage.removeItem(STORAGE_KEYS.POS);
     localStorage.removeItem(STORAGE_KEYS.ACTIVITIES);
     localStorage.removeItem(STORAGE_KEYS.FINANCIAL);
     localStorage.removeItem(STORAGE_KEYS.RECIPES);
     localStorage.removeItem(STORAGE_KEYS.WASTE_LOGS);
+    localStorage.removeItem(STORAGE_KEYS.LOTS);
 
     setProducts(INITIAL_PRODUCTS);
     setSales(generateSeedSales());
-    setAlerts(INITIAL_ALERTS);
+    setCustomAlerts(INITIAL_ALERTS);
+    setResolvedAlertMap({});
     setStockouts(INITIAL_STOCKOUTS);
     setPurchaseOrders(INITIAL_PURCHASE_ORDERS);
     setRecipes(INITIAL_RECIPES);
@@ -858,7 +901,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       incidentsAfter: 1,
     });
     setStockLots(INITIAL_STOCK_LOTS);
-    localStorage.removeItem(STORAGE_KEYS.LOTS);
     setActivities([
       {
         id: 'act-reset',
@@ -870,47 +912,77 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         timestamp: 'Just now',
       },
     ]);
-  };
+  }, [currentUser]);
 
-  return (
-    <AppContext.Provider
-      value={{
-        products,
-        sales,
-        suppliers,
-        alerts,
-        stockouts,
-        purchaseOrders,
-        recipes,
-        wasteLogs,
-        stockLots,
-        surgeModifiers,
-        surgeMultiplier,
-        activeTab,
-        financialConfig,
-        reorderRecommendations,
-        activities,
-        setActiveTab,
-        addProduct,
-        updateStock,
-        recordSale,
-        produceBatch,
-        logWaste,
-        receiveStock,
-        getLotsForProduct,
-        getExpiringLots,
-        addStockLot,
-        setSurgeModifiers,
-        resolveAlert,
-        createPurchaseOrder,
-        updateFinancialConfig,
-        simulateWeekendEggStockout,
-        resetToDemoData,
-      }}
-    >
-      {children}
-    </AppContext.Provider>
+  // Context value memoization: guarantees children don't re-render unless values actually change
+  const contextValue = useMemo<AppContextType>(
+    () => ({
+      products,
+      sales,
+      suppliers,
+      alerts,
+      stockouts,
+      purchaseOrders,
+      recipes,
+      wasteLogs,
+      stockLots,
+      surgeModifiers,
+      surgeMultiplier,
+      activeTab,
+      financialConfig,
+      reorderRecommendations,
+      activities,
+      setActiveTab,
+      addProduct,
+      updateStock,
+      recordSale,
+      produceBatch,
+      logWaste,
+      receiveStock,
+      getLotsForProduct,
+      getExpiringLots,
+      addStockLot,
+      setSurgeModifiers,
+      resolveAlert,
+      createPurchaseOrder,
+      updateFinancialConfig,
+      simulateWeekendEggStockout,
+      resetToDemoData,
+    }),
+    [
+      products,
+      sales,
+      suppliers,
+      alerts,
+      stockouts,
+      purchaseOrders,
+      recipes,
+      wasteLogs,
+      stockLots,
+      surgeModifiers,
+      surgeMultiplier,
+      activeTab,
+      financialConfig,
+      reorderRecommendations,
+      activities,
+      addProduct,
+      updateStock,
+      recordSale,
+      produceBatch,
+      logWaste,
+      receiveStock,
+      getLotsForProduct,
+      getExpiringLots,
+      addStockLot,
+      resolveAlert,
+      createPurchaseOrder,
+      updateFinancialConfig,
+      simulateWeekendEggStockout,
+      resetToDemoData,
+    ]
   );
+
+  return <AppContext.Provider value={contextValue}>{children}</AppContext.Provider>;
 };
 
 export const useApp = () => {

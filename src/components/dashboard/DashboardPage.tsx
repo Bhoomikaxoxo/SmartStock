@@ -27,27 +27,45 @@ export const DashboardPage: React.FC = () => {
   } = useApp();
   const { currentUser } = useAuth();
 
-  // Metrics
-  const totalProducts = products.length;
-  const totalInventoryValue = products.reduce(
-    (acc, curr) => acc + curr.current_stock * curr.cost_price,
-    0
-  );
-  const lowStockItems = products.filter(
-    (p) => p.current_stock < p.minimum_required
-  );
-  const activeAlerts = alerts.filter((a) => !a.resolved);
-  const criticalAlerts = activeAlerts.filter((a) => a.severity === 'critical');
+  // Metrics memoization for smooth dashboard renders
+  const {
+    totalProducts,
+    totalInventoryValue,
+    lowStockItems,
+    activeAlerts,
+    criticalAlerts,
+    urgentReorders,
+    healthyPercentage,
+  } = React.useMemo(() => {
+    const total = products.length;
+    const invValue = products.reduce(
+      (acc, curr) => acc + curr.current_stock * curr.cost_price,
+      0
+    );
+    const lowItems = products.filter(
+      (p) => p.current_stock < p.minimum_required
+    );
+    const active = alerts.filter((a) => !a.resolved);
+    const critical = active.filter((a) => a.severity === 'critical');
+    const urgent = reorderRecommendations.filter(
+      (r) => r.days_until_stockout <= r.lead_time_days
+    );
+    const healthy = products.filter((p) => {
+      const { status } = getStockStatus(p.current_stock, p.minimum_required);
+      return status === 'Healthy';
+    }).length;
+    const pct = Math.round((healthy / (total || 1)) * 100);
 
-  const urgentReorders = reorderRecommendations.filter(
-    (r) => r.days_until_stockout <= r.lead_time_days
-  );
-
-  const healthyCount = products.filter((p) => {
-    const { status } = getStockStatus(p.current_stock, p.minimum_required);
-    return status === 'Healthy';
-  }).length;
-  const healthyPercentage = Math.round((healthyCount / (totalProducts || 1)) * 100);
+    return {
+      totalProducts: total,
+      totalInventoryValue: invValue,
+      lowStockItems: lowItems,
+      activeAlerts: active,
+      criticalAlerts: critical,
+      urgentReorders: urgent,
+      healthyPercentage: pct,
+    };
+  }, [products, alerts, reorderRecommendations]);
 
   const todayFormatted = new Date().toLocaleDateString('en-US', {
     weekday: 'long',

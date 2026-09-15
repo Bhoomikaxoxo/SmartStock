@@ -9,8 +9,11 @@ interface SlowMovingTableProps {
 }
 
 export const SlowMovingTable: React.FC<SlowMovingTableProps> = ({ products, sales }) => {
-  const slowItems = getSlowMovingProducts(products, sales).slice(0, 5);
-  const totalCapitalLocked = slowItems.reduce((sum, item) => sum + item.capitalTiedUp, 0);
+  const { slowItems, totalCapitalLocked } = React.useMemo(() => {
+    const items = getSlowMovingProducts(products, sales).slice(0, 5);
+    const locked = items.reduce((sum, item) => sum + item.capitalTiedUp, 0);
+    return { slowItems: items, totalCapitalLocked: locked };
+  }, [products, sales]);
 
   return (
     <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs flex flex-col justify-between">

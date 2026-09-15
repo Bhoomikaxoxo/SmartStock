@@ -8,15 +8,31 @@ import { AppProvider, useApp } from './context/AppContext';
 import { LoginPage } from './components/auth/LoginPage';
 import { Header } from './components/layout/Header';
 import { Navigation } from './components/layout/Navigation';
-import { DashboardPage } from './components/dashboard/DashboardPage';
-import { InventoryPage } from './components/inventory/InventoryPage';
-import { AnalyticsPage } from './components/analytics/AnalyticsPage';
-import { AlertsPage } from './components/alerts/AlertsPage';
-import { ImpactPage } from './components/impact/ImpactPage';
-import { SettingsPage } from './components/settings/SettingsPage';
-import { ProductionPage } from './components/production/ProductionPage';
+import { PageSkeleton } from './components/common/PageSkeleton';
 import { NotFoundPage } from './components/common/NotFoundPage';
 import { canAccessTab } from './utils/navigationPermissions';
+
+const DashboardPage = React.lazy(() =>
+  import('./components/dashboard/DashboardPage').then((m) => ({ default: m.DashboardPage }))
+);
+const InventoryPage = React.lazy(() =>
+  import('./components/inventory/InventoryPage').then((m) => ({ default: m.InventoryPage }))
+);
+const AnalyticsPage = React.lazy(() =>
+  import('./components/analytics/AnalyticsPage').then((m) => ({ default: m.AnalyticsPage }))
+);
+const AlertsPage = React.lazy(() =>
+  import('./components/alerts/AlertsPage').then((m) => ({ default: m.AlertsPage }))
+);
+const ImpactPage = React.lazy(() =>
+  import('./components/impact/ImpactPage').then((m) => ({ default: m.ImpactPage }))
+);
+const SettingsPage = React.lazy(() =>
+  import('./components/settings/SettingsPage').then((m) => ({ default: m.SettingsPage }))
+);
+const ProductionPage = React.lazy(() =>
+  import('./components/production/ProductionPage').then((m) => ({ default: m.ProductionPage }))
+);
 
 const MainLayout: React.FC = () => {
   const { activeTab, setActiveTab } = useApp();
@@ -77,7 +93,9 @@ const MainLayout: React.FC = () => {
       <Navigation />
       <CommandPalette />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full animate-fade-in">
-        {renderContent()}
+        <React.Suspense fallback={<PageSkeleton />}>
+          {renderContent()}
+        </React.Suspense>
       </main>
 
       {/* Production Operational Footer */}

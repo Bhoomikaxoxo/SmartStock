@@ -17,22 +17,51 @@ export function formatNumber(num: number): string {
 }
 
 /**
- * Calculates average daily consumption over the last N days (defaults to 30)
+ * Builds a single-pass lookup map of total units sold per product over the last N days
  */
-export function getAvgDailyConsumption(
-  productId: string,
-  sales: SalesRecord[],
-  days: number = 30
-): number {
+export function buildSalesLookup(sales: SalesRecord[], days: number = 30): Map<string, number> {
   const cutoffDate = new Date();
   cutoffDate.setDate(cutoffDate.getDate() - days);
   const cutoffStr = cutoffDate.toISOString().split('T')[0];
 
-  const recentSales = sales.filter(
-    (s) => s.product_id === productId && s.date >= cutoffStr
-  );
+  const map = new Map<string, number>();
+  for (let i = 0; i < sales.length; i++) {
+    const s = sales[i];
+    if (s.date >= cutoffStr) {
+      map.set(s.product_id, (map.get(s.product_id) || 0) + s.units_sold);
+    }
+  }
+  return map;
+}
 
-  const totalSold = recentSales.reduce((acc, curr) => acc + curr.units_sold, 0);
+/**
+ * Calculates average daily consumption over the last N days (defaults to 30)
+ * Uses optional precomputed map for O(1) retrieval
+ */
+export function getAvgDailyConsumption(
+  productId: string,
+  sales: SalesRecord[],
+  days: number = 30,
+  precomputedSalesMap?: Map<string, number>
+): number {
+  if (precomputedSalesMap) {
+    const totalSold = precomputedSalesMap.get(productId) || 0;
+    const avg = totalSold / days;
+    return Math.max(0.01, parseFloat(avg.toFixed(2)));
+  }
+
+  const cutoffDate = new Date();
+  cutoffDate.setDate(cutoffDate.getDate() - days);
+  const cutoffStr = cutoffDate.toISOString().split('T')[0];
+
+  let totalSold = 0;
+  for (let i = 0; i < sales.length; i++) {
+    const s = sales[i];
+    if (s.product_id === productId && s.date >= cutoffStr) {
+      totalSold += s.units_sold;
+    }
+  }
+
   const avg = totalSold / days;
   return Math.max(0.01, parseFloat(avg.toFixed(2))); // Prevent division by zero
 }
@@ -69,10 +98,11 @@ export function computeReorderRecommendation(
   sales: SalesRecord[],
   supplier?: Supplier,
   bufferDays: number = BUFFER_DAYS_DEFAULT,
-  surgeMultiplier: number = 1.0
+  surgeMultiplier: number = 1.0,
+  precomputedSalesMap?: Map<string, number>
 ): ReorderRecommendation {
   const leadTimeDays = supplier ? supplier.lead_time_days : 3;
-  const baseAvgDaily = getAvgDailyConsumption(product.id, sales, 30);
+  const baseAvgDaily = getAvgDailyConsumption(product.id, sales, 30, precomputedSalesMap);
   const avgDaily = parseFloat((baseAvgDaily * surgeMultiplier).toFixed(2));
   const daysUntilStockout = parseFloat((product.current_stock / avgDaily).toFixed(1));
   const reorderTriggerPoint = parseFloat((avgDaily * leadTimeDays).toFixed(1));
@@ -127,6 +157,31 @@ export function computeReorderRecommendation(
 }
 
 /**
+ * Computes reorder recommendations for all products in an optimized O(N + M) pass
+ */
+export function computeAllReorderRecommendations(
+  products: Product[],
+  sales: SalesRecord[],
+  suppliers: Supplier[],
+  bufferDays: number = BUFFER_DAYS_DEFAULT,
+  surgeMultiplier: number = 1.0
+): ReorderRecommendation[] {
+  const salesMap = buildSalesLookup(sales, 30);
+  const supplierMap = new Map(suppliers.map((s) => [s.id, s]));
+
+  return products.map((product) =>
+    computeReorderRecommendation(
+      product,
+      sales,
+      supplierMap.get(product.supplier_id),
+      bufferDays,
+      surgeMultiplier,
+      salesMap
+    )
+  );
+}
+
+/**
  * Calculates top selling products ranked by units sold in the last 30, 60, or 90 days
  */
 export function getTopSellingProducts(
@@ -172,12 +227,15 @@ export function getTopSellingProducts(
  * turnover rate = total units sold in 90 days / average inventory
  */
 export function getSlowMovingProducts(products: Product[], sales: SalesRecord[]) {
+  const totalSoldMap = new Map<string, number>();
+  for (let i = 0; i < sales.length; i++) {
+    const s = sales[i];
+    totalSoldMap.set(s.product_id, (totalSoldMap.get(s.product_id) || 0) + s.units_sold);
+  }
+
   return products
     .map((p) => {
-      const totalSold = sales
-        .filter((s) => s.product_id === p.id)
-        .reduce((sum, s) => sum + s.units_sold, 0);
-
+      const totalSold = totalSoldMap.get(p.id) || 0;
       // Turnover velocity: units sold per unit held in stock
       const turnoverRate = p.current_stock > 0 ? parseFloat((totalSold / (p.current_stock || 1)).toFixed(2)) : 0;
       const capitalTiedUp = Math.round(p.current_stock * p.cost_price);
@@ -301,11 +359,14 @@ export function evaluateDynamicAlerts(
 ): Alert[] {
   const alerts: Alert[] = [];
   const todayStr = new Date().toISOString().split('T')[0];
+  const salesMap = buildSalesLookup(sales, 30);
+  const supplierMap = new Map(suppliers.map((s) => [s.id, s]));
 
-  products.forEach((product) => {
-    const supplier = suppliers.find((s) => s.id === product.supplier_id);
+  for (let i = 0; i < products.length; i++) {
+    const product = products[i];
+    const supplier = supplierMap.get(product.supplier_id);
     const leadTime = supplier?.lead_time_days || 3;
-    const avgDaily = getAvgDailyConsumption(product.id, sales, 30);
+    const avgDaily = getAvgDailyConsumption(product.id, sales, 30, salesMap);
     const daysUntilStockout = parseFloat((product.current_stock / avgDaily).toFixed(1));
 
     // 1. Critical Low Stock (below 50% minimum or zero)
@@ -378,7 +439,7 @@ export function evaluateDynamicAlerts(
         });
       }
     }
-  });
+  }
 
   return alerts;
 }

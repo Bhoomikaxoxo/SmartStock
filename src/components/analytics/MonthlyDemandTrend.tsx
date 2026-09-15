@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   AreaChart,
   Area,
@@ -29,18 +29,20 @@ export const MonthlyDemandTrend: React.FC<MonthlyDemandTrendProps> = ({ products
 
   const currentProduct = products.find((p) => p.id === selectedProductId) || products[0];
 
-  const trendData = currentProduct
-    ? getMonthlyDemandTrend(currentProduct.id, sales, surgeMultiplier)
-    : {
-        chartData: [],
-        m1Total: 0,
-        m2Total: 0,
-        m3Total: 0,
-        projectedM4: 0,
-        slope: 0,
-        avgGrowthPct: 0,
-        trendBadge: { text: 'Stable', color: 'amber' as const },
-      };
+  const trendData = useMemo(() => {
+    return currentProduct
+      ? getMonthlyDemandTrend(currentProduct.id, sales, surgeMultiplier)
+      : {
+          chartData: [],
+          m1Total: 0,
+          m2Total: 0,
+          m3Total: 0,
+          projectedM4: 0,
+          slope: 0,
+          avgGrowthPct: 0,
+          trendBadge: { text: 'Stable', color: 'amber' as const },
+        };
+  }, [currentProduct, sales, surgeMultiplier]);
 
   const badgeColorStyles = {
     emerald: 'bg-emerald-50 text-emerald-800 border-emerald-200/90',

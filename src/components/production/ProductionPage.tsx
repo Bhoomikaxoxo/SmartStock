@@ -34,15 +34,17 @@ export const ProductionPage: React.FC = () => {
     return Array.from(new Set(recipes.map((r) => r.category)));
   }, [recipes]);
 
-  // Feasibility calculation for each recipe
+  // Feasibility calculation for each recipe with O(1) product lookup
   const recipeFeasibility = useMemo(() => {
+    const productMap = new Map(products.map((p) => [p.id, p]));
+
     return recipes.map((recipe) => {
       let maxBatches = Infinity;
       const shortagesForOneBatch: { name: string; deficit: number; unit: string }[] = [];
       let totalIngredientCost = 0;
 
       for (const ing of recipe.ingredients) {
-        const prod = products.find((p) => p.id === ing.product_id);
+        const prod = productMap.get(ing.product_id);
         const available = prod ? prod.current_stock : 0;
         const possibleForIng = Math.floor(available / ing.quantity);
         if (possibleForIng < maxBatches) {

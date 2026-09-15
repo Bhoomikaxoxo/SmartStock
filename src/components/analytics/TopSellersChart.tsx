@@ -22,8 +22,9 @@ interface TopSellersChartProps {
 export const TopSellersChart: React.FC<TopSellersChartProps> = ({ products, sales }) => {
   const { theme, tokens } = useTheme();
   const [timeframe, setTimeframe] = useState<30 | 60 | 90>(30);
-
-  const topProducts = getTopSellingProducts(products, sales, timeframe).slice(0, 6);
+  const topProducts = React.useMemo(() => {
+    return getTopSellingProducts(products, sales, timeframe).slice(0, 6);
+  }, [products, sales, timeframe]);
 
   // Palette tuned for contrast in both modes
   const colors =
